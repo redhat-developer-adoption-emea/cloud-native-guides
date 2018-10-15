@@ -1,3 +1,7 @@
+- src: cvicens.openshift_sonatype_sonarqube
+  version: ocp-3.10
+  name: openshift_sonatype_sonarqube
+
 - src: siamaksade.openshift_sonatype_nexus
   version: ocp-3.10
   name: openshift_sonatype_nexus
