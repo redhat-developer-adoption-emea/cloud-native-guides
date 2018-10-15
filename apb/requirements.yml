@@ -1,6 +1,6 @@
-- src: cvicens.openshift_sonatype_sonarqube
+- src: cvicens.ansible_openshift_sonarqube
   version: ocp-3.10
-  name: openshift_sonatype_sonarqube
+  name: ansible_openshift_sonarqube
 
 - src: siamaksade.openshift_sonatype_nexus
   version: ocp-3.10
