@@ -1,3 +1,7 @@
+env:
+  global:
+  - REPO=cvicens/cloudnative-workshop-apb
+
 dist: trusty
 sudo: required
 language: python
@@ -15,9 +19,10 @@ install:
   - ansible-playbook apb/playbooks/provision.yml --syntax-check
 
 script:
-  - cd apb && docker build -t openshiftapb/cloudnative-workshop-apb:$TRAVIS_COMMIT .
+  - cd apb
+  - docker build -f Dockerfile --label "com.redhat.apb.spec=$(base64 --wrap=0 apb.yml)" -t $REPO:$TRAVIS_COMMIT .
 
 after_success:
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-  - docker tag openshiftapb/cloudnative-workshop-apb:$TRAVIS_COMMIT openshiftapb/cloudnative-workshop-apb:$TAG
-  - docker push openshiftapb/cloudnative-workshop-apb:$TAG
+  - docker tag $REPO:$TRAVIS_COMMIT $REPO:$TAG
+  - docker push $REPO:$TAG

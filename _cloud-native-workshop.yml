@@ -39,4 +39,5 @@ modules:
   - app-config
   - continuous-delivery
   - debug
+  - gradle-build
   - env-info

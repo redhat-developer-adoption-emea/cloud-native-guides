@@ -36,5 +36,9 @@ modules:
     name:  Debugging Applications
   debug-che:
     name:  Debugging Applications
+  gradle-build:
+    name:  Gradle Build
+  gradle-build-che:
+    name:  Gradle Build
   env-info:
     name: "Appendix: Lab Env Info"
