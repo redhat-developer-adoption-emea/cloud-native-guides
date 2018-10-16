@@ -19,7 +19,7 @@ Install Workshop Infrastructure
 ===
 
 An [APB](https://hub.docker.com/r/openshiftapb/cloudnative-workshop-apb) is provided for 
-deploying the Cloud-Native Workshop infra (lab instructions, Nexus, Gogs, Eclipse Che, etc) in a project 
+deploying the Cloud-Native Workshop infra (lab instructions, Sonarqube, Nexus, Gogs, Eclipse Che, etc) in a project 
 on an OpenShift cluster via the service catalog. In order to add this APB to the OpenShift service catalog, log in 
 as cluster admin and perform the following in the `openshift-ansible-service-broker` project :
 
