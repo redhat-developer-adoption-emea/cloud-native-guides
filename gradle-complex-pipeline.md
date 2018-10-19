@@ -32,7 +32,7 @@ Due to similarities between Maven and Gradle, the simplest way to start is to cr
 ~~~shell
 FROM registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7
 
-ENV GRADLE_VERSION=4.8.1
+ENV GRADLE_VERSION=4.9
 
 USER root
 
@@ -116,30 +116,69 @@ $ cat << EOF | oc create -f -
 apiVersion: v1
 kind: BuildConfig
 metadata:
-  name: gradle-pipeline
+  name: gradle-pipeline-complex
 spec:
   strategy:
     jenkinsPipelineStrategy:
       jenkinsfile: |-
+        def GIT_URL = "https://github.com/redhat-developer-adoption-emea/cloud-native-labs"
+        def GIT_REF = "ocp-3.10"
+        def CONTEXT_DIR = "inventory-spring-boot-gradle"
+        def NEXUS = "http://nexus-lab-infra.apps.istio.openshiftworkshop.com"
+        def NEXUS_USERNAME = "admin"
+        def NEXUS_PASSWORD = "admin123"
+        def SONAR = "http://nexus-lab-infra.apps.istio.openshiftworkshop.com"
+        def SONAR_TOKEN = "f7d35ff77556cdf83fc0b78311201c4a2dd7227b"5
+
+        def version = ""
+            
         pipeline {
           agent {
             label 'maven'
           }
           stages {
-            stage('Build') {
+            stage('Checkout') {
               steps {
-                git url: "https://github.com/redhat-developer-adoption-emea/cloud-native-labs", branch: '{{ GITHUB_REF }}'
-                dir('inventory-spring-boot-gradle') {
-                    sh "./gradlew build"            
-                }
+                git url: "${GIT_URL}", branch: "${GIT_REF}"
               }
             }
-            stage('Test') {
-              steps {
-                dir('inventory-spring-boot-gradle') {
-                    sh "./gradlew test"
+            
+            stage('Build') {
+                
+                steps {
+                    dir("${CONTEXT_DIR}") {
+                        sh "java -version"
+                        sh "./gradlew build --no-daemon"
+                    }
                 }
-              }
+            }
+            
+            stage('Test') {
+                steps {
+                    dir("${CONTEXT_DIR}") {
+                        sh "./gradlew test --no-daemon"
+                    }
+                }
+            }
+            
+            stage('Nexus') {
+                steps {
+                    script {
+                      def version
+                      dir("${CONTEXT_DIR}") {
+                        version = sh (script: './gradlew -q getVersion --no-daemon', returnStdout: true).trim()
+                        sh "curl -v -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file ./build/libs/inventory-${version}.jar ${NEXUS}/repository/maven-snapshots/com/redhat/cloudnative/inventory/${version}/inventory-${version}.jar"
+                      }
+                    }
+                }
+            }
+
+            stage('Sonar') {
+                steps {
+                    dir("${CONTEXT_DIR}") {
+                        ./gradlew sonarqube -Dsonar.host.url=${SONAR} -Dsonar.login=${SONAR_TOKEN}
+                    }
+                }
             }
           }
         }

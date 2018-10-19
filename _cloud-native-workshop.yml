@@ -40,6 +40,6 @@ modules:
   - app-config
   - continuous-delivery
   - debug
-  - gradle-build
-  - gradle-custom-slave
+  - gradle-custom-build
+  - gradle-complex-pipeline
   - env-info

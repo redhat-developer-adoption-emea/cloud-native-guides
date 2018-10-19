@@ -36,9 +36,9 @@ modules:
     name:  Debugging Applications
   debug-che:
     name:  Debugging Applications
-  gradle-build:
-    name:  Gradle Build
-  gradle-custom-slave:
-    name:  Gradle Custom Jenkins Slave
+  gradle-custom-build:
+    name:  Gradle Custom Build
+  gradle-complex-pipeline:
+    name:  Gradle Complex Pipeline
   env-info:
     name: "Appendix: Lab Env Info"
