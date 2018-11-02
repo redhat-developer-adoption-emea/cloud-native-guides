@@ -42,4 +42,5 @@ modules:
   - debug
   - gradle-custom-build
   - gradle-complex-pipeline
+  - node-karma-complex-pipeline
   - env-info

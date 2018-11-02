@@ -2,7 +2,7 @@
 
 This lab is part of a more to the point with regards to CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
 
-As a continuation of the previous lab we're going to use a custom Jenkins slave to build our new inventory service using [Gradle](https://gradle.org/).
+Here we're going to use a custom Jenkins slave to build NodeJS + Angular 6 application running a pipeline which will run karma tests on a custom image where we have installed Chrome and NG.
 
 #### Background
 
@@ -26,32 +26,35 @@ The certified Jenkins image provided by OpenShift also provides auto-discovery a
 
 Note that this scanning is only performed once, when the Jenkins master is starting.
 
-After Maven, Gradle is one of the popular build tools for Java projects. Let’s build a new slave image to enable Jenkins to run Gradle builds.
-Due to similarities between Maven and Gradle, the simplest way to start is to create a Dockerfile and build upon the Maven slave image. Here is the content of the [Dockerfile on GitHub](https://raw.githubusercontent.com/redhat-developer-adoption-emea/cloud-native-labs/ocp-3.10/solutions/lab-12/Dockerfile) for building the Gradle slave image:
+Karma is one of the popular testing frameworks for front-end applications and although for quite some time PhantomJS was the defacto browser to run tests against nowdays it's usual to use real (headless) browsers.
+
+In this lab we're going to use Chrome and because it's not added by default to the NodeJS slave image, we're going to create a new image based on that one. Here is the content of the [Dockerfile on GitHub](https://raw.githubusercontent.com/redhat-developer-adoption-emea/cloud-native-labs/ocp-3.10.karma/solutions/lab-13/Dockerfile) for building the NodeJS slave image:
 
 ~~~shell
-FROM registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7
+#FROM registry.access.redhat.com/openshift3/jenkins-agent-nodejs-8-rhel7:v3.10
+FROM openshift/jenkins-agent-nodejs-8-centos7:v3.10
 
-ENV GRADLE_VERSION=4.9
+MAINTAINER Carlos Vicens <cvicensa@redhat.com>
+
+ENV PATH=/opt/rh/rh-nodejs8/root/usr/bin:${PATH}
 
 USER root
 
-RUN curl -skL -o /tmp/gradle-bin.zip https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip && \
-    mkdir -p /opt/gradle && \
-    unzip -q /tmp/gradle-bin.zip -d /opt/gradle && \
-    ln -sf /opt/gradle/gradle-$GRADLE_VERSION/bin/gradle /usr/local/bin/gradle
+COPY google-chrome.repo  /etc/yum.repos.d/google-chrome.repo
 
-RUN chown -R 1001:0 /opt/gradle && \
-    chmod -R g+rw /opt/gradle
+#RUN yum install -y epel-release && yum install -y chromium && npm install -g @angular/cli@latest
+RUN yum install -y google-chrome-stable
 
 USER 1001
+
+RUN npm install -g @angular/cli@latest
 ~~~
 
 You can build the docker image on OpenShift by creating a new build from the Git repository that contains the Dockerfile. OpenShift automatically detects the Dockerfile in the Git repository, builds an image from it and pushes the image into the OpenShift integrated image registry:
 
 ~~~shell
-$ oc new-build https://github.com/redhat-developer-adoption-emea/cloud-native-labs.git#{{ GITHUB_REF }} --name=jenkins-slave-gradle-rhel7 --context-dir=solutions/lab-12
-$ oc logs -f bc/jenkins-slave-gradle-rhel7 
+$ oc new-build https://github.com/redhat-developer-adoption-emea/cloud-native-labs.git#{{ GITHUB_REF }} --name=jenkins-slave-karma-centos7 --context-dir=solutions/lab-13
+$ oc logs -f bc/jenkins-slave-karma-centos7
 ~~~
 
 You can verify that an image stream is created in the _CI/CD Infra_ project for the Jenkins Gradle slave image:
@@ -60,15 +63,15 @@ You can verify that an image stream is created in the _CI/CD Infra_ project for 
 $ oc get is
 
 NAME                         DOCKER REPO                                     TAGS      
-jenkins-slave-gradle-rhel7   172.30.1.1:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-gradle-rhel7   latest
-jenkins-slave-maven-rhel7    172.30.1.1:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-maven-rhel7    latest
+jenkins-slave-karma-centos7   172.30.1.1:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-karma-centos7   latest
+jenkins-slave-karma-centos7    172.30.1.1:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-karma-centos7    latest
 ~~~
  
-The image is ready in the registry and all is left is to add metadata to the image stream so that Jenkins master can discover this new slave image by assigning the label `role=jenkins-slave` to the image and also optionally annotate it with `slave-label=gradle` to specify the slave name which is by default the name of the image.
+The image is ready in the registry and all is left is to add metadata to the image stream so that Jenkins master can discover this new slave image by assigning the label `role=jenkins-slave` to the image and also optionally annotate it with `slave-label=karma` to specify the slave name which is by default the name of the image.
 
 ~~~shell
-$ oc label is/jenkins-slave-gradle-rhel7 role=jenkins-slave
-$ oc annotate is/jenkins-slave-gradle-rhel7 slave-label=gradle
+$ oc label is/jenkins-slave-karma-centos7 role=jenkins-slave
+$ oc annotate is/jenkins-slave-karma-centos7 slave-label=karma
 ~~~
 
 When Jenkins master starts for the first time, it automatically scans the image registry for slave images and configures them on Jenkins. Since you use an ephemeral Jenkins (without persistent storage) in this lab, restarting Jenkins causes a fresh Jenkins container to be deployed and to run the automatic configuration and discovery at startup to configure the Gradle slave image. When using a persistent Jenkins, all configurations would be kept and be available on the new container as well and therefore the automatic scan would not get triggered to avoid overwriting user configurations in Jenkins. In that case, you can configure the Gradle jenkins slave by adding a *Kubernetes Pod Template* in Jenkins configuration panel.
@@ -78,30 +81,30 @@ When Jenkins master starts for the first time, it automatically scans the image 
 >	$ oc delete pod -l name=jenkins
 >	
 
-When Jenkins is up and running, you can login into Jenkins using your OpenShift credentials then *Manage Jenkins -> Configure System*. Scroll down to the Kubernetes section and notice that there is a Kubernetes Pod Template defined automatically for the Gradle slave image your created.
+When Jenkins is up and running, you can login into Jenkins using your OpenShift credentials then *Manage Jenkins -> Configure System*. Scroll down to the Kubernetes section and notice that there is a Kubernetes Pod Template defined automatically for the karma slave image your created.
 
 ![Kubernetes Pod Template]({% image_path devops-slave-pod-template.png %}){:width="500px"}
 
-You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then builds it using Gradle:
+You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step or with the `agent` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then builds it using Gradle:
 
 ~~~shell
 pipeline {
   agent {
-    label 'gradle'
+    label 'karma'
   }
   stages {
     stage('Build') {
       steps {
         git url: "https://github.com/redhat-developer-adoption-emea/cloud-native-labs", branch: 'ocp-3.10'
-        dir('inventory-spring-boot-gradle') {
-            sh "./gradlew build"            
+        dir('karma-tests') {
+            sh "ng build"            
         }
       }
     }
     stage('Test') {
       steps {
-        dir('inventory-spring-boot-gradle') {
-            sh "./gradlew test"
+        dir('karma-tests') {
+            sh "ng test"
         }
       }
     }
@@ -130,7 +133,9 @@ spec:
 
         //oc policy add-role-to-user system:image-puller system:serviceaccount:coolstore-dev:default -n coolstore
 
-        def APP_NAME = "inventory"
+        def APP_BASE = "apps.istio.openshiftworkshop.com"
+
+        def APP_NAME = "karma-tests"
         def APP_VERSION = "0.0.1-SNAPSHOT"
 
         def PROJECT_NAME = "coolstore"
@@ -138,22 +143,22 @@ spec:
 
         def GIT_URL = "https://github.com/redhat-developer-adoption-emea/cloud-native-labs"
         def GIT_REF = "ocp-3.10"
-        def CONTEXT_DIR = "inventory-spring-boot-gradle"
+        def CONTEXT_DIR = "karma-tests"
 
-        def NEXUS = "http://nexus-lab-infra.apps.istio.openshiftworkshop.com"
+        def NEXUS = "http://nexus-lab-infra.${APP_BASE}"
         def NEXUS_USERNAME = "admin"
         def NEXUS_PASSWORD = "admin123"
         def NEXUS_PATH = "com/redhat/cloudnative/inventory"
 
-        def SONAR = "http://sonarqube-lab-infra.apps.istio.openshiftworkshop.com"
+        def SONAR = "http://sonarqube-lab-infra.${APP_BASE}"
         def SONAR_TOKEN = "f7d35ff77556cdf83fc0b78311201c4a2dd7227b"
 
         def BUILD_NAME = APP_NAME
-        def BUILD_IMAGE_STREAM = "openjdk18-openshift:latest"
+        def BUILD_IMAGE_STREAM = "openshift/nodejs:8"
             
         pipeline {
           agent {
-            label 'maven'
+            label 'karma'
           }
           stages {
             stage('Checkout') {
@@ -166,8 +171,7 @@ spec:
                 steps {
                     //slackSend (color: '#ff0000', message: "Building")
                     dir("${CONTEXT_DIR}") {
-                        sh "java -version"
-                        sh "./gradlew build --no-daemon -x test"
+                        sh "ng build"
                     }
                 }
             }
@@ -175,28 +179,7 @@ spec:
             stage('Test') {
                 steps {
                     dir("${CONTEXT_DIR}") {
-                        sh "./gradlew test --no-daemon"
-                    }
-                }
-            }
-            
-            stage('Sonar') {
-                steps {
-                    script {
-                        dir("${CONTEXT_DIR}") {
-                          sh "./gradlew sonarqube -Dsonar.host.url=${SONAR} -Dsonar.login=${SONAR_TOKEN} --no-daemon"
-                        }
-                    }
-                }
-            }
-            
-            stage('Nexus') {
-                steps {
-                    script {
-                      dir("${CONTEXT_DIR}") {
-                        APP_VERSION = sh (script: './gradlew -q getVersion --no-daemon', returnStdout: true).trim()
-                        sh "curl -v -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file ./build/libs/${APP_NAME}-${APP_VERSION}.jar ${NEXUS}/repository/maven-snapshots/${NEXUS_PATH}/${APP_VERSION}/${APP_NAME}-${APP_VERSION}.jar"
-                      }
+                        sh "ng test"
                     }
                 }
             }
@@ -270,6 +253,7 @@ spec:
             }
           }
         }
+
     type: JenkinsPipeline
 EOF
 ~~~
