@@ -103,11 +103,13 @@ Now let's deploy Jenkins with ephemeral storage.
 
 ~~~shell
 $  oc new-app -n {{COOLSTORE_PROJECT}} --template=jenkins-ephemeral
---> Deploying template "openshift/jenkins-persistent" to project {{COOLSTORE_PROJECT}}
+--> Deploying template "openshift/jenkins-ephemeral" to project {{COOLSTORE_PROJECT}}
 
-     Jenkins
+     Jenkins (Ephemeral)
      ---------
-     Jenkins service, with ephemeral storage.
+     Jenkins service, without persistent storage.
+     
+     WARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.
      
     ...
     service "jenkins" created
@@ -127,30 +129,43 @@ When Jenkins is up and running, you can login into Jenkins using your OpenShift 
 
 You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step or in the `agent` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then runs the `build` and `test` tasks using [npx](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b):
 
-~~~shell
-pipeline {
-  agent {
-    label 'karma'
-  }
-  stages {
-    stage('Build') {
-      steps {
-        git url: "{{GIT_URL}}", branch: '{{GITHUB_REF}}'
-        dir('karma-tests') {
-            sh "npx ng build"
+~~~yaml
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: gradle-pipeline-simple
+spec:
+  source:
+    type: None
+  strategy:
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        pipeline {
+		  agent {
+		    label 'karma'
+		  }
+		  stages {
+		    stage('Build') {
+		      steps {
+		        git url: "{{GIT_URL}}", branch: "{{GITHUB_REF}}"
+		        dir('karma-tests') {
+		            sh "npx ng build"
+		        }
+		      }
+		    }
+		    stage('Test') {
+		      steps {
+		        dir('karma-tests') {
+		            sh "npx ng test"
+		        }
+		      }
+		    }
+          }
         }
-      }
-    }
-    stage('Test') {
-      steps {
-        dir('karma-tests') {
-            sh "npx ng test"
-        }
-      }
-    }
-  }
-}
+    type: JenkinsPipeline
 ~~~
+
+**OPTIONAL:** Create an OpenShift Pipeline that embeds the above pipeline definition. Click on *Add to project* in the CI/CD Infra project and then *Import YAML/JSON*. Paste the following YAML script in the text field and then click on *Create*. Finally start this pipeline.
 
 #### Building a pipe-line leveraging our custom Jenkins slave
 
@@ -162,24 +177,24 @@ Now we're going to create an OpenShift Pipeline that embeds a pipeline definitio
 Please run this commands to fulfill the requisites referred to above.
 
 ~~~ shell
-$ oc new-project coolstore-dev
 $ oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
 $ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
 $ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
 ~~~
 
-Now it's time to create the pipeline, to do so please run the next command. Review the next note to adapt the following variables to your environment.
+Now it's time to create the pipeline, to do so please run the next commands. Review the next note to adapt the following variables to your environment.
 
 > **NOTE:** 
 >
+> * **Subtitute USER_NUMBER="XX" by your assigned number!**
 > * Ask your instructor to go to sonar Administration/Security/Users and get a proper token for SONAR_TOKEN variable, then substitute 'ASK_YOUR_INSTRUCTOR' with it.
 > * Assign a proper value to APP_BASE, it should like the Openshift master url ***{{OPENSHIFT_CONSOLE_URL}}*** replacing `master` by `apps`
 > 
 
 ~~~shell
+$ export MY_USER_NUMBER="XX"
 $ export SONAR_TOKEN="ASK_YOUR_INSTRUCTOR"
 $ export APP_BASE="ASK_YOUR_INSTRUCTOR"
-$ export MY_PROJECT="{{COOLSTORE_PROJECT}}"
 $ export GIT_URL="{{LABS_GIT_REPO}}"
 $ export GIT_REF="{{GITHUB_REF}}"
 ~~~
@@ -190,7 +205,7 @@ $ export GIT_REF="{{GITHUB_REF}}"
 > * **`{{COOLSTORE_PROJECT}}-dev`** should be **`{{COOLSTORE_PROJECT}}-dev-XX`**
 
 ~~~shell
-$ cat << EOF | oc create -n ${MY_PROJECT} -f -
+$ cat << EOF | oc create -n "{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}" -f -
 apiVersion: v1
 kind: BuildConfig
 metadata:
@@ -206,8 +221,8 @@ spec:
         def APP_NAME = "karma-tests"
         def APP_VERSION = "0.0.1-SNAPSHOT"
 
-        def PROJECT_NAME = "{{COOLSTORE_PROJECT}}"
-        def DEV_PROJECT_NAME = PROJECT_NAME + "-dev"
+        def PROJECT_NAME = "{{COOLSTORE_PROJECT}}" + "\${MY_USER_NUMBER}"
+        def DEV_PROJECT_NAME = "{{COOLSTORE_PROJECT}}-dev" + "\${MY_USER_NUMBER}"
 
         def GIT_URL = "${GIT_URL}"
         def GIT_REF = "${GIT_REF}"
