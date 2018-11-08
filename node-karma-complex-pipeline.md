@@ -51,11 +51,6 @@ RUN npm install -g @angular/cli@latest
 
 #### Building our custom slave image
 
-**WARNING:**
-
-> * **`{{COOLSTORE_PROJECT}}`** should be **`{{COOLSTORE_PROJECT}}-XX`**
-> * **`{{COOLSTORE_PROJECT}}-dev`** should be **`{{COOLSTORE_PROJECT}}-dev-XX`**
-
 If you haven't created projects `{{COOLSTORE_PROJECT}}` and `{{COOLSTORE_PROJECT}}-dev`, please do it as follows.
 
 ~~~shell
