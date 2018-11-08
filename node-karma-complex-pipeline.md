@@ -125,7 +125,7 @@ $  oc new-app -n {{COOLSTORE_PROJECT}} --template=jenkins-ephemeral
 
 When Jenkins is up and running, you can login into Jenkins using your OpenShift credentials then *Manage Jenkins -> Configure System*. Scroll down to the Kubernetes section and notice that there is a Kubernetes Pod Template defined automatically for the karma slave image your created.
 
-![Kubernetes Pod Template]({% image_path devops-slave-pod-template.png %}){:width="500px"}
+![Kubernetes Pod Template]({% image_path devops-karma-slave-pod-template.png %}){:width="500px"}
 
 You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step or in the `agent` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then runs the `build` and `test` tasks using [npx](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b):
 
@@ -165,11 +165,11 @@ spec:
     type: JenkinsPipeline
 ~~~
 
-**OPTIONAL:** Create an OpenShift Pipeline that embeds the above pipeline definition. Click on *Add to project* in the CI/CD Infra project and then *Import YAML/JSON*. Paste the following YAML script in the text field and then click on *Create*. Finally start this pipeline.
+**OPTIONAL:** Create an OpenShift Pipeline that embeds this simple pipeline. Click on *Add to project* in the CI/CD Infra project and then *Import YAML/JSON*. Paste the YAML descriptor in the text field and then click on *Create*. Finally start this pipeline.
 
 #### Building a pipe-line leveraging our custom Jenkins slave
 
-Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `ng`, test it, builds an image using a binary file (`tar` of the dist/karma-tests folder), deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
+Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `ng`, test it, builds an image, deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
 
 > The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}-dev`. 
 > Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccount:coolstore-dev:default`
@@ -353,3 +353,11 @@ build "karma-pipeline-complex-5" started
 Or from the web-console, **Builds ➡ Pipelines**
 
 ![Pipeline Log]({% image_path devops-start-build-karma-tests-pipeline.png %}){:width="740px"}
+
+After a successful pipeline built we should be able to visit our NodeJS application. Please go to {{COOLSTORE_PROJECT}}-dev project and have a look to the Overview area, it should look like this. 
+
+![Pipeline Log]({% image_path devops-karma-tests-overview.png %}){:width="740px"}
+
+Once there, please click on the link.
+
+![Pipeline Log]({% image_path devops-karma-tests-app-deployed.png %}){:width="740px"}

@@ -1,6 +1,6 @@
-## Creating Custom Jenkins Slave Pods
+## Creating gradle-ready Jenkins Slave Pods
 
-This lab is part of a more to the point with regards to CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
+This lab is part of a, more to the point, set of labs with regards to CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
 
 As a continuation of the previous lab we're going to use a custom Jenkins slave to build our new inventory service using [Gradle](https://gradle.org/).
 
@@ -30,9 +30,11 @@ After Maven, Gradle is one of the popular build tools for Java projects. Let’s
 Due to similarities between Maven and Gradle, the simplest way to start is to create a Dockerfile and build upon the Maven slave image. Here is the content of the [Dockerfile on GitHub](https://raw.githubusercontent.com/redhat-developer-adoption-emea/cloud-native-labs/ocp-3.10/solutions/lab-12/Dockerfile) for building the Gradle slave image:
 
 ~~~shell
-FROM registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7
+FROM registry.access.redhat.com/openshift3/jenkins-agent-maven-35-rhel7:v3.10
 
-ENV GRADLE_VERSION=4.9
+MAINTAINER Siamak Sadeghianfar <ssadeghi@redhat.com>
+
+ENV GRADLE_VERSION=4.8.1
 
 USER root
 
@@ -124,6 +126,8 @@ $  oc new-app -n {{COOLSTORE_PROJECT}} --template=jenkins-ephemeral
 
 When Jenkins is up and running, you can login into Jenkins using your OpenShift credentials then *Manage Jenkins -> Configure System*. Scroll down to the Kubernetes section and notice that there is a Kubernetes Pod Template defined automatically for the Gradle slave image your created.
 
+Your configuration should resemble this one.
+
 ![Kubernetes Pod Template]({% image_path devops-slave-pod-template.png %}){:width="500px"}
 
 You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then builds it using Gradle:
@@ -166,11 +170,22 @@ spec:
     type: JenkinsPipeline
 ~~~
 
-**OPTIONAL:** Create an OpenShift Pipeline that embeds the above pipeline definition. Click on *Add to project* in the CI/CD Infra project and then *Import YAML/JSON*. Paste the following YAML script in the text field and then click on *Create*. Finally start this pipeline.
+**OPTIONAL:** Create an OpenShift Pipeline that embeds this simple pipeline. Click on *Add to project* in the CI/CD Infra project and then *Import YAML/JSON*. Paste the YAML descriptor in the text field and then click on *Create*. Finally start this pipeline.
 
 #### Building a pipe-line leveraging our custom Jenkins slave
 
-Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `gradle`, test it, builds an image using a binary file (`ROOT.jar`), ... , deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
+Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `gradle`. These are the steps that this pipeline conprehends:
+
+, test it, builds an image using a binary file (`ROOT.jar`), ... , deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
+
+* Checkout: from the git repository
+* Build: building the jar file (binary asset) using gradle
+* Test
+* Sonar: scan sources using Sonarqube
+* Nexus: push our jar file to Nexus 3
+* Build Image: triggers the build of a Java based image from the binary file built previously
+* Approve: manually approve/reject from Jenkins
+* Promote to DEV: tag image as `dev` ready which triggers the (re)deployment of the new image
 
 > The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}-dev`. 
 > Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccount:coolstore-dev:default`
@@ -371,8 +386,11 @@ build "karma-pipeline-complex-5" started
 
 Or from the web-console, **Builds ➡ Pipelines**
 
-![Pipeline Log]({% image_path devops-start-build-karma-tests-pipeline.png %}){:width="740px"}
+![Pipeline Log]({% image_path devops-start-build-gradle-pipeline.png %}){:width="740px"}
+
+After a successful pipeline built we should be able to run the following curl test with success.
 
 ~~~shell
 $ curl http://inventory-{{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}.${APP_BASE}/api/inventory
+[{"itemId":"329299","quantity":35},{"itemId":"329199","quantity":12},{"itemId":"165613","quantity":45},{"itemId":"165614","quantity":87},{"itemId":"165954","quantity":43},{"itemId":"444434","quantity":32},{"itemId":"444435","quantity":53}]
 ~~~
