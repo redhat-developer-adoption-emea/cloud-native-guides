@@ -141,25 +141,25 @@ spec:
     jenkinsPipelineStrategy:
       jenkinsfile: |-
         pipeline {
-		  agent {
-		    label 'karma'
-		  }
-		  stages {
-		    stage('Build') {
-		      steps {
-		        git url: "{{GIT_URL}}", branch: "{{GITHUB_REF}}"
-		        dir('karma-tests') {
-		            sh "npx ng build"
-		        }
-		      }
-		    }
-		    stage('Test') {
-		      steps {
-		        dir('karma-tests') {
-		            sh "npx ng test"
-		        }
-		      }
-		    }
+          agent {
+            label 'karma'
+          }
+          stages {
+            stage('Build') {
+              steps {
+                git url: "{{GIT_URL}}", branch: "{{GITHUB_REF}}"
+                dir('karma-tests') {
+                    sh "npx ng build"
+                }
+              }
+            }
+            stage('Test') {
+              steps {
+                dir('karma-tests') {
+                    sh "npx ng test"
+                }
+              }
+            }
           }
         }
     type: JenkinsPipeline
