@@ -1,4 +1,4 @@
-## Creating Custom Jenkins Slave Pods
+## Creating karma-ready Jenkins Slave Pods
 
 This lab is a spin-off of s set of labs regarding CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
 
@@ -86,49 +86,30 @@ $ oc label -n {{COOLSTORE_PROJECT}} is/jenkins-slave-karma-centos7 role=jenkins-
 $ oc annotate -n {{COOLSTORE_PROJECT}} is/jenkins-slave-karma-centos7 slave-label=karma
 ~~~
 
-When Jenkins master starts for the first time, it automatically scans the image registry for slave images and configures them on Jenkins. Since you use an ephemeral Jenkins (without persistent storage) in this lab, restarting Jenkins causes a fresh Jenkins container to be deployed and to run the automatic configuration and discovery at startup to configure the Gradle slave image. When using a persistent Jenkins, all configurations would be kept and be available on the new container as well and therefore the automatic scan would not get triggered to avoid overwriting user configurations in Jenkins. In that case, you can configure the Gradle jenkins slave by adding a *Kubernetes Pod Template* in Jenkins configuration panel.
+When Jenkins master starts for the first time, it automatically scans the image registry for slave images and configures them on Jenkins. Since you use an ephemeral Jenkins (without persistent storage) in this lab, restarting Jenkins causes a fresh Jenkins container to be deployed and to run the automatic configuration and discovery at startup to configure the karma slave image. When using a persistent Jenkins, all configurations would be kept and be available on the new container as well and therefore the automatic scan would not get triggered to avoid overwriting user configurations in Jenkins. In that case, you can configure the karma jenkins slave by adding a *Kubernetes Pod Template* in Jenkins configuration panel.
 
-First of all let's deploy Jenkins with persistent storage.
+First of all let's deploy Jenkins with ephemeral storage.
 
 > **Pay attention** to the next command that shows the templates available for Jenkins
+>
+> ~~~shell
+> $ oc get template -n openshift | grep jenkins
+> jenkins-ephemeral  Jenkins service, without persistent storage....                                    7 (all set)       6
+> jenkins-persistent  Jenkins service, with persistent storage....                                       8 (all set)       7
+> ~~~
+>
+
+Now let's deploy Jenkins with ephemeral storage.
 
 ~~~shell
-$ oc get template -n openshift | grep jenkins
-jenkins-ephemeral                               Jenkins service, without persistent storage....                                    7 (all set)       6
-jenkins-persistent                              Jenkins service, with persistent storage....                                       8 (all set)       7
-~~~
-
-Now let's deploy Jenkins with persistent storage.
-
-~~~shell
-$  oc new-app -n {{COOLSTORE_PROJECT}} --template=jenkins-persistent -p VOLUME_CAPACITY=512Mi
+$  oc new-app -n {{COOLSTORE_PROJECT}} --template=jenkins-ephemeral
 --> Deploying template "openshift/jenkins-persistent" to project {{COOLSTORE_PROJECT}}
 
      Jenkins
      ---------
-     Jenkins service, with persistent storage.
+     Jenkins service, with ephemeral storage.
      
-     NOTE: You must have persistent volumes available in your cluster to use this template.
-
-     A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.
-
-     * With parameters:
-        * Jenkins Service Name=jenkins
-        * Jenkins JNLP Service Name=jenkins-jnlp
-        * Enable OAuth in Jenkins=true
-        * Memory Limit=2Gi
-        * Volume Capacity=512Mi
-        * Jenkins ImageStream Namespace=openshift
-        * Jenkins ImageStreamTag=jenkins:2
-        * Disable memory intensive administrative monitors=true
-
---> Creating resources ...
-    route "jenkins" created
-    persistentvolumeclaim "jenkins" created
-    deploymentconfig "jenkins" created
-    serviceaccount "jenkins" created
-    rolebinding "jenkins_edit" created
-    service "jenkins-jnlp" created
+    ...
     service "jenkins" created
 --> Success
     Access your application via route 'jenkins-coolstore.apps.cloud-native.openshiftworkshop.com' 
@@ -144,7 +125,7 @@ When Jenkins is up and running, you can login into Jenkins using your OpenShift 
 
 ![Kubernetes Pod Template]({% image_path devops-slave-pod-template.png %}){:width="500px"}
 
-You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step or in the `agent` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then builds it using Gradle:
+You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step or in the `agent` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then runs the `build` and `test` tasks using [npx](https://medium.com/@maybekatz/introducing-npx-an-npm-package-runner-55f7d4bd282b):
 
 ~~~shell
 pipeline {
@@ -156,20 +137,22 @@ pipeline {
       steps {
         git url: "{{GIT_URL}}", branch: '{{GITHUB_REF}}'
         dir('karma-tests') {
-            sh "ng build"
+            sh "npx ng build"
         }
       }
     }
     stage('Test') {
       steps {
         dir('karma-tests') {
-            sh "ng test"
+            sh "npx ng test"
         }
       }
     }
   }
 }
 ~~~
+
+#### Building a pipe-line leveraging our custom Jenkins slave
 
 Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `ng`, test it, builds an image using a binary file (`tar` of the dist/karma-tests folder), deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
 
@@ -185,21 +168,33 @@ $ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}:je
 $ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
 ~~~
 
-Now it's time to create the pipeline, to do so please run the next command.
+Now it's time to create the pipeline, to do so please run the next command. Review the next note to adapt the following variables to your environment.
 
-> **NOTE:** Ask your instructor to go to sonar Administration/Security/Users and get the token for you, then substitute 'FIND_THIS_TOKEN_FIRST' with the proper token.
+> **NOTE:** 
+>
+> * Ask your instructor to go to sonar Administration/Security/Users and get a proper token for SONAR_TOKEN variable, then substitute 'ASK_YOUR_INSTRUCTOR' with it.
+> * Assign a proper value to APP_BASE, it should like the Openshift master url ***{{OPENSHIFT_CONSOLE_URL}}*** replacing `master` by `apps`
+> 
 
 ~~~shell
-$ export SONAR_TOKEN="FIND_THIS_TOKEN_FIRST"
+$ export SONAR_TOKEN="ASK_YOUR_INSTRUCTOR"
 $ export APP_BASE="ASK_YOUR_INSTRUCTOR"
 $ export MY_PROJECT="{{COOLSTORE_PROJECT}}"
 $ export GIT_URL="{{LABS_GIT_REPO}}"
 $ export GIT_REF="{{GITHUB_REF}}"
+~~~
+
+**REMEMBER:**
+
+> * **`{{COOLSTORE_PROJECT}}`** should be **`{{COOLSTORE_PROJECT}}-XX`**
+> * **`{{COOLSTORE_PROJECT}}-dev`** should be **`{{COOLSTORE_PROJECT}}-dev-XX`**
+
+~~~shell
 $ cat << EOF | oc create -n ${MY_PROJECT} -f -
 apiVersion: v1
 kind: BuildConfig
 metadata:
-  name: gradle-pipeline-complex
+  name: karma-pipeline-complex
 spec:
   strategy:
     jenkinsPipelineStrategy:
@@ -333,8 +328,13 @@ spec:
 EOF
 ~~~
 
-In the _CI/CD Infra_ project, click on *Builds -> Pipelines* on the left sidebar menu and then click on *Start Pipeline* button on the right side of *gradle-pipeline*. A new instance of the pipeline starts running using the Gradle slave image.
+Now it's time to start our pipe-line, we can do this either from the CLI.
 
-![Pipeline Log]({% image_path devops-slave-job-log.png %}){:width="740px"}
+~~~shell
+$ oc start-build bc/karma-pipeline-complex -n {{COOLSTORE_PROJECT}}
+build "karma-pipeline-complex-5" started
+~~~
 
-![OpenShift Pipeline with Gradle]({% image_path devops-slave-gradle-pipeline.png %}){:width="740px"}
+Or from the web-console, **Builds ➡ Pipelines**
+
+![Pipeline Log]({% image_path devops-start-build-karma-tests-pipeline.png %}){:width="740px"}
