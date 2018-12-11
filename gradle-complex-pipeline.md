@@ -183,14 +183,14 @@ Now we're going to create an OpenShift Pipeline that embeds a pipeline definitio
 * Promote to DEV: tag image as `dev` ready which triggers the (re)deployment of the new image
 
 > The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}-dev`. 
-> Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccount:coolstore-dev:default`
+> Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccounts:coolstore-dev:default`
 
 Please run this commands to fulfill the requisites referred to above.
 
 ~~~ shell
-$ oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-$ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-$ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
+$ oc policy add-role-to-user edit system:serviceaccounts:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
+$ oc policy add-role-to-user view system:serviceaccounts:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
+$ oc policy add-role-to-user system:image-puller system:serviceaccounts:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
 ~~~
 
 Now it's time to create the pipeline, to do so please run the next commands. Review the next note to adapt the following variables to your environment.
