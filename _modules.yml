@@ -10,6 +10,10 @@ modules:
     name: Microservices with Spring Boot
   spring-boot-che:
     name: Microservices with Spring Boot
+  inventory-api:
+    name: Designing the Inventory API with Open API
+  dotnet-core:
+    name: Alternative Inventory with .Net Core
   wildfly-swarm:
     name: Enterprise Microservices with WildFly Swarm
   wildfly-swarm-che:

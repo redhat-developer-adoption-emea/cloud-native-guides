@@ -33,6 +33,8 @@ modules:
   - getting-started
   - wildfly-swarm
   - spring-boot
+  - inventory-api
+  - dotnet-core
   - vertx
   - nodejs
   - health
