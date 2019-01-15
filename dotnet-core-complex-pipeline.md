@@ -2,7 +2,7 @@
 
 This lab is a spin-off of s set of labs regarding CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
 
-Here we're going to use a custom Jenkins slave to build NodeJS + Angular 6 application running a pipeline which will run karma tests on a custom image where we have installed Chrome and NG.
+Here we're going to use a custom Jenkins slave to build NodeJS + Angular 6 application running a pipeline which will run dotnet-core tests on a custom image where we have installed Chrome and NG.
 
 
 #### Building a complex pipe-line leveraging our custom Jenkins slave
@@ -48,7 +48,7 @@ $ cat << EOF | oc create -n "coolstore-${MY_USER_NUMBER}" -f -
 apiVersion: v1
 kind: BuildConfig
 metadata:
-  name: karma-pipeline-complex
+  name: dotnet-core-pipeline-complex
 spec:
   strategy:
     jenkinsPipelineStrategy:
@@ -204,8 +204,8 @@ EOF
 Now it's time to start our pipe-line, we can do this either from the CLI.
 
 ~~~shell
-$ oc start-build bc/karma-pipeline-complex -n {{COOLSTORE_PROJECT}}
-build "karma-pipeline-complex-5" started
+$ oc start-build bc/dotnet-core-pipeline-complex -n {{COOLSTORE_PROJECT}}
+build "dotnet-core-pipeline-complex-5" started
 ~~~
 
 Or from the web-console, **Builds ➡ Pipelines**
