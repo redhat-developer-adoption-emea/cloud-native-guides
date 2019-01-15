@@ -25,8 +25,9 @@ def CONTEXT_DIR = "solutions/lab-2-dotnet-core/inventory-dotnet-core"
 def DOTNET_STARTUP_PROJECT = "src/Org.OpenAPITools"
 def DOTNET_FRAMEWORK = "netcoreapp2.1"
 def DOTNET_CONFIGURATION = "Release"
-def VERBOSITY_OPTION = 5
 def DOTNET_APP_PATH = "/tmp/build"
+def RESTORE_OPTIONS = ""
+def VERBOSITY_OPTION = 5
 
 def NEXUS = "http://nexus-lab-infra.apps.${GUID}.openshiftworkshop.com"
 def NEXUS_USERNAME = "admin"
