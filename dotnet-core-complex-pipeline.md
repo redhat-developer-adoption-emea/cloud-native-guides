@@ -15,10 +15,9 @@ Now we're going to create an OpenShift Pipeline that embeds a pipeline definitio
 Please run this commands to fulfill the requisites referred to above.
 
 ~~~ shell
-$ export MY_USER_NUMBER="XX"
-$ oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}:jenkins -n {{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}
-$ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}:jenkins -n {{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}
-$ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}:default -n {{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}
+$ oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
+$ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
+$ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
 ~~~
 
 Now it's time to create the pipeline, to do so please run the next commands. Review the next note to adapt the following variables to your environment.
@@ -40,11 +39,11 @@ $ export GIT_REF="{{GITHUB_REF}}"
 
 **REMEMBER:**
 
-> * **`{{COOLSTORE_PROJECT}}`** should be **`{{COOLSTORE_PROJECT}}-XX`**
-> * **`{{COOLSTORE_PROJECT}}-dev`** should be **`{{COOLSTORE_PROJECT}}-dev-XX`**
+> * **`coolstore`** should be **`coolstore-XX`**
+> * **`coolstore-dev`** should be **`coolstore-dev-XX`**
 
 ~~~shell
-$ cat << EOF | oc create -n "{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}" -f -
+$ cat << EOF | oc create -n "coolstore-${MY_USER_NUMBER}" -f -
 apiVersion: v1
 kind: BuildConfig
 metadata:
@@ -58,8 +57,8 @@ spec:
         def APP_NAME = "inventory-dotnet-core"
         def APP_VERSION = "0.0.1-SNAPSHOT"
 
-        def PROJECT_NAME = "{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}"
-        def DEV_PROJECT_NAME = "{{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}"
+        def PROJECT_NAME = "coolstore-${MY_USER_NUMBER}"
+        def DEV_PROJECT_NAME = "coolstore-dev-${MY_USER_NUMBER}"
 
         def GIT_URL = "${GIT_URL}"
         def GIT_REF = "${GIT_REF}"
