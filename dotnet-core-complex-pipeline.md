@@ -65,7 +65,7 @@ spec:
         def GIT_REF = "${GIT_REF}"
         def CONTEXT_DIR = "solutions/lab-2-dotnet-core/inventory-dotnet-core"
 
-        def DOTNET_STARTUP_PROJECT = "src/Org.OpenAPITools"
+        def DOTNET_STARTUP_PROJECT = "src/Org.OpenAPITools/Org.OpenAPITools.csproj"
         def DOTNET_FRAMEWORK = "netcoreapp2.1"
         def DOTNET_CONFIGURATION = "Release"
         def VERBOSITY_OPTION = 5
