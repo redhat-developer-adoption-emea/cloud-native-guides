@@ -1,25 +1,26 @@
 ## Microservices with .NET Core 2.x
 
-In this lab you will learn about .Net Core and how you can build microservices using this technology. During this lab, you will use a code generator to start from the an Open API specification (this could have been done in a previous lab or provided by the instructor).
+In this lab you will learn about **how you can build microservices using** **.Net Core** and **Red Hat Openshift**. During this lab, you will use [**Open API Generator**](https://github.com/openapitools/openapi-generator), a code generator that can generate API client libraries, server stubs, documentation and configuration automatically given an [**Open API**](https://www.openapis.org/) Spec.
 
-> As in the design 
+You will use a previously created Open API specification or you'll be given one by the instructor.
 
 #### What is .NET Core?
 
 From Wikipedia:
 
-> **ASP.NET Core** is a free and **open-source web framework**, and higher performance than ASP.NET, **developed by Microsoft and the community**. It is a modular framework that runs on both the full .NET Framework, on Windows, and the cross-platform .NET Core. 
-> The framework **is a complete rewrite that unites the previously separate ASP.NET MVC and ASP.NET Web API into a single programming model**.
+> * **ASP.NET Core** is a free and **open-source web framework**, and higher performance than ASP.NET, **developed by Microsoft and the community**. It is a modular framework that runs on both the full .NET Framework, on Windows, and the cross-platform .NET Core. 
+> * The framework **is a complete rewrite that unites the previously separate ASP.NET MVC and ASP.NET Web API into a single programming model**.
 
-Red Hat Openshift supports a list images intended to be used as base layer images, and provide functionality to developers on the OpenShift platform. Among [them](https://access.redhat.com/articles/2176281): .NET Core 1.0, .NET Core 1.1, .NET Core 2.1 
+Red Hat Openshift supports a [list of images](https://access.redhat.com/articles/2176281) intended to be used as base layer images, and provide functionality to developers on the OpenShift platform. Among them: .NET Core 1.0, .NET Core 1.1, .NET Core 2.1 
+
+You can find more information about .Net Core in RHEL [here](https://developers.redhat.com/products/dotnet/overview/)
 
 #### Preprequisites
 
-Install .Net Core Build apps - SDK
+In order to follow this lab you'll need:
 
-https://dotnet.microsoft.com/download/dotnet-core/2.1
-
-
+* **Java 8**, for the Open API Generator. You can find it [here](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html)
+* **.Net Core Build apps** - SDK, to test locally the code generated. If you don't want/care to run tests locally you don't need this. You can find it from [here](https://dotnet.microsoft.com/download/dotnet-core/2.1)
 
 #### Retrieving the API specification
 
@@ -43,9 +44,7 @@ Click on the menu as in the picture, then click on `Download (YAML)`
 
 #### Generating the code
 
-In ordet to generate the c# (.Net Core) code (stub/façade code) we're going to use the Open API Generator. These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
-
-> [Open API CLI](https://github.com/OpenAPITools/openapi-generator) is a third party (community) tool and has nothing to do with Red Hat
+In ordet to generate the c# (.Net Core) code (stub/façade) we're going to use the [**Open API Generator**](https://github.com/openapitools/openapi-generator). These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
 
 ~~~shell
 $ mkdir inventory-dotnet-core-lab && cd inventory-dotnet-core-lab
@@ -57,9 +56,9 @@ $ java -jar ./bin/openapi-generator-cli.jar generate -i Inventory\ API.yaml -g a
 
 #### [Temporary] Fixing the error in DefaultApi.cs
 
-OpenAPI CLI generates a proper API C# façade but introduces a couple of errors when copying the reponse examples provided in the specification.
+[Open API Generator](https://github.com/openapitools/openapi-generator) generates a proper C# API server stub but introduces a couple of errors when copying the reponse examples provided within the specification.
 
-These two errors are in `src/Org.OpenAPITools/Controllers/DefaultApi.cs` please follow the instructions bellow to fix them.
+These two errors are in `src/Org.OpenAPITools/Controllers/DefaultApi.cs` please follow the instructions below to fix them.
 
 Locate the following piece of code in `DefaultApi.cs`, as you can see corresponds to the `GET` operation to get all the inventory items. 
 
@@ -93,7 +92,7 @@ The offending line is:
 exampleJson = "\"{\\"itemId\\":\\"329299\\",\\"quantity\\":35}\"";
 ~~~
 
-Should be:
+It should be:
 
 ~~~csharp
 exampleJson = "[{\"itemId\":\"329299\",\"quantity\":35},{\"itemId\":\"329199\",\"quantity\":12},{\"itemId\":\"165613\",\"quantity\":45},{\"itemId\":\"165614\",\"quantity\":87},{\"itemId\":\"165954\",\"quantity\":43},{\"itemId\":\"444434\",\"quantity\":32},{\"itemId\":\"444435\",\"quantity\":53}]";
@@ -140,13 +139,13 @@ The offending line is:
 exampleJson = "\"{\\"itemId\\":\\"329299\\",\\"quantity\\":35}\"";
 ~~~
 
-Should be:
+It should be:
 
 ~~~csharp
 exampleJson = "{\"itemId\":\"329299\",\"quantity\":35}";
 ~~~
 
-If you're curious the original JSON version of our specification is here `src/Org.OpenAPITools/wwwroot/openapi-original.json`
+> If you're curious the original JSON version of our specification is here `src/Org.OpenAPITools/wwwroot/openapi-original.json`
 
 
 #### Testing the API
@@ -177,7 +176,7 @@ $ curl http://localhost:8080/api/inventory/329299
 {"itemId":"329299","quantity":35}
 ~~~
 
-So far so good, now we have to create a git repo, push our code to it.
+So far so good, now we have to create a git repo and push our code to it.
 
 #### Creating a git repo for the generated code
 

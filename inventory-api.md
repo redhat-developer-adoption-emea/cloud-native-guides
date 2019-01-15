@@ -14,7 +14,7 @@ After a successful login you should land in the dashboard area.
 
 ![apicur.io Login]({% image_path dotnet-apicurio-dashboard-area.png %}){:width="740px"}
 
-Please, click on APIs (left side), there you should be able to see your APIs, none if it's the first time you use it. Click on `Create New API` to start desigining our Inventory API.
+Please, click on APIs (left side), there you should be able to see your APIs, none if it's the first time you use it. Click on `Create New API` to start designing our Inventory API.
 
 ![apicur.io Login]({% image_path dotnet-apicurio-apis-area.png %}){:width="740px"}
 
@@ -22,15 +22,15 @@ Now give to your API `Name`, `Description`, select version `Open API 3.0.2` and 
 
 ![apicur.io New API]({% image_path dotnet-apicurio-new-api.png %}){:width="740px"}
 
-At this point we have an empty API, so let's start actually editing the API by clicking on `Edit API`.
+At this point we have an empty API, so let's start editing the API by clicking on `Edit API`.
 
 ![apicur.io Edit API]({% image_path dotnet-apicurio-edit-api.png %}){:width="740px"}
 
-Click on `Add a data Type` or the plus sign next to `Data Types`.
+The first thing we're going to do is to create the InventoryItem type, so click on `Add a data Type` or the plus sign next to `Data Types`.
 
 ![apicur.io Edit API]({% image_path dotnet-apicurio-new-datatype.png %}){:width="740px"}
 
-In order to create our data type we have to provide a Name a Description and a sample JSON object (although optional we're are going to use this feature to make the editing somewhat easier). After entering the follwing data please click on `Save`.
+In order to create our data type we have to provide a Name a Description and a sample JSON object (although optional we're are going to use this feature to make the editing somewhat easier). After entering the following data please click on `Save`.
 
 >
 * **Name:** `InventoryItem`
@@ -48,7 +48,9 @@ Now that we have our InventoryItem data type, it's time to define the API. Defin
 * **/api/inventory** to get all the items in the inventory
 * **/api/inventory/{itemId}** to get a specific item
 
-![apicur.io Edit API]({% image_path dotnet-apicurio-new-datatype.png %}){:width="740px"}
+Let's create our first path, click on `Add a Path`
+
+![apicur.io Edit API]({% image_path dotnet-apicurio-new-path-getall.png %}){:width="740px"}
 
 Please type `/api/inventory` and click on `Add`.
 
@@ -60,7 +62,7 @@ As you can see there are no operations defined yet. As the Inventory API should 
 
 ![apicur.io Edit API]({% image_path dotnet-apicurio-new-path-getall-02.png %}){:width="740px"}
 
-Let's edit the description and type something like: **"Should return all elements as an arry of InventoryItems or an empty array if there are none."**
+Let's edit the description and type something like: **"Should return all elements as an array of InventoryItems or an empty array if there are none."**
 
 ![apicur.io Edit API]({% image_path dotnet-apicurio-new-path-getall-03.png %}){:width="740px"}
 
@@ -111,7 +113,7 @@ This time we need a path parameter to search for a specific, like this one: `/ap
 
 ![apicur.io Edit API]({% image_path dotnet-apicurio-new-path-getone-01.png %}){:width="740px"}
 
-Following up with the path parameter, scroll down to `Path Parameters` you'll find that there is one already created (infered from the path you typed in before). Click on `Create` to actually create it.
+Following up with the path parameter, scroll down to `Path Parameters` you'll find that there is one already created (inferred from the path you typed in before). Click on `Create` to actually create it.
 
 ![apicur.io Edit API]({% image_path dotnet-apicurio-new-path-getone-02.png %}){:width="740px"}
 
