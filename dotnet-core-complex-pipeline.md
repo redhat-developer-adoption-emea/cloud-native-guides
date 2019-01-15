@@ -15,9 +15,10 @@ Now we're going to create an OpenShift Pipeline that embeds a pipeline definitio
 Please run this commands to fulfill the requisites referred to above.
 
 ~~~ shell
-$ oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-$ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-$ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
+$ export MY_USER_NUMBER="XX"
+$ oc policy add-role-to-user edit system:serviceaccount:coolstore-${MY_USER_NUMBER}:jenkins -n coolstore-dev-${MY_USER_NUMBER}
+$ oc policy add-role-to-user view system:serviceaccount:coolstore-${MY_USER_NUMBER}:jenkins -n coolstore-dev-${MY_USER_NUMBER}
+$ oc policy add-role-to-user system:image-puller system:serviceaccount:coolstore-dev-${MY_USER_NUMBER}:default -n coolstore-${MY_USER_NUMBER}
 ~~~
 
 Now it's time to create the pipeline, to do so please run the next commands. Review the next note to adapt the following variables to your environment.
