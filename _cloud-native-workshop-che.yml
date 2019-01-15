@@ -35,6 +35,7 @@ modules:
   - spring-boot-che
   - inventory-api
   - dotnet-core
+  - dotnet-core-custom-slave
   - vertx-che
   - nodejs
   - health
