@@ -103,9 +103,7 @@ When Jenkins is up and running, you can login into Jenkins using your OpenShift 
 
 ![Kubernetes Pod Template]({% image_path devops-slave-pod-template.png %}){:width="500px"}
 
-You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream. The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then builds it using Gradle:
-
-TODO: https://www.hanselman.com/blog/AutomaticUnitTestingInNETCorePlusCodeCoverageInVisualStudioCode.aspx
+You can instruct Jenkins to run a pipeline using a specific slave image by specifying the slave label in the `node` step. The slave image label is either the image name or if specified, the value of `slave-label` annotation on the image stream (`dotnet`). The following is a simple pipeline definition that clones an example application from a Github repository and then builds it using .Net Core:
 
 ~~~shell
 pipeline {
@@ -170,7 +168,7 @@ spec:
 EOF
 ~~~
 
-In the _CI/CD Infra_ project, click on *Builds -> Pipelines* on the left sidebar menu and then click on *Start Pipeline* button on the right side of *gradle-pipeline*. A new instance of the pipeline starts running using the Gradle slave image.
+In the _CI/CD Infra_ project, click on *Builds -> Pipelines* on the left sidebar menu and then click on *Start Pipeline* button on the right side of *dotnet-core-pipeline*. A new instance of the pipeline starts running using the .Net Core slave image.
 
 ![Pipeline Log]({% image_path devops-slave-job-log.png %}){:width="740px"}
 

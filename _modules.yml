@@ -16,6 +16,8 @@ modules:
     name: Alternative Inventory with .Net Core
   dotnet-core-custom-slave:
     name: Custom .Net Core ready Jenkins Slave
+  dotnet-core-complex-pipeline:
+    name: Complex .Net Core based Jenkins pipeline
   wildfly-swarm:
     name: Enterprise Microservices with WildFly Swarm
   wildfly-swarm-che:

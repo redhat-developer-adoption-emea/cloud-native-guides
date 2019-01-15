@@ -36,6 +36,7 @@ modules:
   - inventory-api
   - dotnet-core
   - dotnet-core-custom-slave
+  - dotnet-core-complex-pipeline
   - vertx-che
   - nodejs
   - health
