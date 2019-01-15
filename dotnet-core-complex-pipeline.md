@@ -89,23 +89,23 @@ spec:
           stages {
             stage('Checkout') {
               steps {
-                git url: "${GIT_URL}", branch: "${GIT_REF}"
+                git url: "\${GIT_URL}", branch: "\${GIT_REF}"
               }
             }
             
             stage('Build') {
                 steps {
                     //slackSend (color: '#ff0000', message: "Building")
-                    dir("${CONTEXT_DIR}") {
-                        sh "dotnet restore \"${DOTNET_STARTUP_PROJECT}\" ${RESTORE_OPTIONS} ${VERBOSITY_OPTION}"
-                        sh "dotnet publish \"${DOTNET_STARTUP_PROJECT}\" -f \"${DOTNET_FRAMEWORK}\" -c \"${DOTNET_CONFIGURATION}\" ${VERBOSITY_OPTION} --self-contained false /p:PublishWithAspNetCoreTargetManifest=false --no-restore -o \"${DOTNET_APP_PATH}\""
+                    dir("\${CONTEXT_DIR}") {
+                        sh "dotnet restore \"\${DOTNET_STARTUP_PROJECT}\" \${RESTORE_OPTIONS} \${VERBOSITY_OPTION}"
+                        sh "dotnet publish \"\${DOTNET_STARTUP_PROJECT}\" -f \"${DOTNET_FRAMEWORK}\" -c \"\${DOTNET_CONFIGURATION}\" \${VERBOSITY_OPTION} --self-contained false /p:PublishWithAspNetCoreTargetManifest=false --no-restore -o \"\${DOTNET_APP_PATH}\""
                     }
                 }
             }
             
             stage('Test') {
                 steps {
-                    dir("${CONTEXT_DIR}") {
+                    dir("\${CONTEXT_DIR}") {
                         sh "echo dotnet test..."
                     }
                 }
@@ -114,7 +114,7 @@ spec:
             stage('Sonar') {
                 steps {
                     script {
-                        dir("${CONTEXT_DIR}") {
+                        dir("\${CONTEXT_DIR}") {
                           // https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+MSBuild
                           // dotnet tool install --global dotnet-sonarscanner
                           // dotnet sonarscanner begin /k:"project-key"
@@ -130,14 +130,14 @@ spec:
               when {
                 expression {
                   openshift.withCluster() {
-                    return !openshift.selector("bc", "${BUILD_NAME}").exists();
+                    return !openshift.selector("bc", "\${BUILD_NAME}").exists();
                   }
                 }
               }
               steps {
                 script {
                   openshift.withCluster() {
-                    openshift.newBuild("--name=${BUILD_NAME}", "--image-stream=${BUILD_IMAGE_STREAM}", "--binary")
+                    openshift.newBuild("--name=\${BUILD_NAME}", "--image-stream=\${BUILD_IMAGE_STREAM}", "--binary")
                   }
                 }
               }
@@ -146,9 +146,9 @@ spec:
             stage('Build Image') {
               steps {
                 script {
-                  dir("${CONTEXT_DIR}") {
+                  dir("\${CONTEXT_DIR}") {
                     openshift.withCluster() {
-                        openshift.selector("bc", "${BUILD_NAME}").startBuild("--from-dir=${DOTNET_APP_PATH}", "--wait")
+                        openshift.selector("bc", "${BUILD_NAME}").startBuild("--from-dir=\${DOTNET_APP_PATH}", "--wait")
                     }      
                   }
                 }
@@ -167,7 +167,7 @@ spec:
               steps {
                 script {
                   openshift.withCluster() {
-                    openshift.tag("${BUILD_NAME}:latest", "${BUILD_NAME}:dev")
+                    openshift.tag("\${BUILD_NAME}:latest", "\${BUILD_NAME}:dev")
                   }
                 }
               }
@@ -177,8 +177,8 @@ spec:
               when {
                 expression {
                   openshift.withCluster() {
-                      openshift.withProject("${DEV_PROJECT_NAME}") {
-                        return !openshift.selector('dc', "${APP_NAME}").exists()
+                      openshift.withProject("\${DEV_PROJECT_NAME}") {
+                        return !openshift.selector('dc', "\${APP_NAME}").exists()
                       }
                   }
                 }
@@ -186,8 +186,8 @@ spec:
               steps {
                 script {
                   openshift.withCluster() {
-                    openshift.withProject("${DEV_PROJECT_NAME}") {
-                        openshift.newApp("${PROJECT_NAME}/${BUILD_NAME}:dev", "--name=${APP_NAME}").narrow('svc').expose()
+                    openshift.withProject("\${DEV_PROJECT_NAME}") {
+                        openshift.newApp("\${PROJECT_NAME}/\${BUILD_NAME}:dev", "--name=\${APP_NAME}").narrow('svc').expose()
                     }
                   }
                 }
