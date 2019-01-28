@@ -60,8 +60,8 @@ You can verify that an image stream is created in the _CI/CD Infra_ project for 
 $ oc get is
 
 NAME                         DOCKER REPO                                     TAGS      
-jenkins-slave-gradle-rhel7   172.30.1.1:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-gradle-rhel7   latest
-jenkins-slave-maven-rhel7    172.30.1.1:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-maven-rhel7    latest
+jenkins-slave-gradle-rhel7   172.30.1.1:5000/{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}/jenkins-slave-gradle-rhel7   latest
+jenkins-slave-maven-rhel7    172.30.1.1:5000/{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}/jenkins-slave-maven-rhel7    latest
 ~~~
  
 The image is ready in the registry and all is left is to add metadata to the image stream so that Jenkins master can discover this new slave image by assigning the label `role=jenkins-slave` to the image and also optionally annotate it with `slave-label=gradle` to specify the slave name which is by default the name of the image.

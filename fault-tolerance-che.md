@@ -39,7 +39,7 @@ deployment config.
 First, get list of deployment configs available in the project.
 
 ~~~shell
-$ oc project {{COOLSTORE_PROJECT}}
+$ oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 $ oc get dc 
 
 NAME        REVISION   DESIRED   CURRENT   TRIGGERED BY
@@ -135,7 +135,7 @@ deploymentconfig "web" resource requirements updated
 ~~~
 
 > You can also use the OpenShift Web Console by clicking on **Applications** >> **Deployments** within 
-> the **{{COOLSTORE_PROJECT}}** project. Click then on **web** and from the **Actions** menu on 
+> the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** project. Click then on **web** and from the **Actions** menu on 
 > the top-right, choose **Edit Resource Limits**.
 
 The pods get restarted automatically setting the new resource limits in effect. Now you can define an 
@@ -144,7 +144,7 @@ the CPU consumption passes 50% utilization:
 
 > You can configure an autoscaler using OpenShift Web Console by clicking 
 > on **Applications** >> **Deployments** within 
-> the **{{COOLSTORE_PROJECT}}** project. Click then on **web** and from the **Actions** menu on 
+> the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** project. Click then on **web** and from the **Actions** menu on 
 > the top-right, choose **Edit Autoscaler**.
 
 ~~~shell

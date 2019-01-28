@@ -368,7 +368,7 @@ Grant permission to the API Gateway to be able to access OpenShift REST API and 
 > Make sure to replace the project name with your own unique project name
 
 ~~~shell
-$ oc policy add-role-to-user view -n {{COOLSTORE_PROJECT}} -z default
+$ oc policy add-role-to-user view -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} -z default
 ~~~
 
 OpenShift [Source-to-Image (S2I)]({{OPENSHIFT_DOCS_BASE}}/architecture/core_concepts/builds_and_image_streams.html#source-build) 
@@ -439,9 +439,9 @@ OpenShift CLI.
 $ oc get routes
 
 NAME        HOST/PORT                                                  PATH      SERVICES    PORT       TERMINATION   
-catalog     catalog-{{COOLSTORE_PROJECT}}.roadshow.openshiftapps.com               catalog     8080                     None
-inventory   inventory-{{COOLSTORE_PROJECT}}.roadshow.openshiftapps.com             inventory   8080                     None
-gateway     gateway-{{COOLSTORE_PROJECT}}.roadshow.openshiftapps.com               gateway     8080                     None
+catalog     catalog-{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}.roadshow.openshiftapps.com               catalog     8080                     None
+inventory   inventory-{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}.roadshow.openshiftapps.com             inventory   8080                     None
+gateway     gateway-{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}.roadshow.openshiftapps.com               gateway     8080                     None
 ~~~
 
 Copy the route url for API Gateway and verify the API Gateway service works using `curl`:

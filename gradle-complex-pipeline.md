@@ -51,35 +51,35 @@ USER 1001
 
 #### Building our custom slave image
 
-If you haven't created projects `{{COOLSTORE_PROJECT}}` and `{{COOLSTORE_PROJECT}}-dev`, please do it as follows.
+If you haven't created projects `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` and `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev`, please do it as follows.
 
 ~~~shell
-$ oc new-project {{COOLSTORE_PROJECT}}
-$ oc new-project {{COOLSTORE_PROJECT}}-dev
+$ oc new-project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+$ oc new-project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
 ~~~
 
 You can build the docker image on OpenShift by creating a new build from the Git repository that contains the Dockerfile. OpenShift automatically detects the Dockerfile in the Git repository, builds an image from it and pushes the image into the OpenShift integrated image registry:
 
 ~~~shell
-$ oc new-build -n {{COOLSTORE_PROJECT}} https://github.com/redhat-developer-adoption-emea/cloud-native-labs.git#{{ GITHUB_REF }} --context-dir=solutions/lab-12 --name=jenkins-slave-gradle-rhel7 
-$ oc logs -n {{COOLSTORE_PROJECT}} -f bc/jenkins-slave-gradle-rhel7 
+$ oc new-build -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} https://github.com/redhat-developer-adoption-emea/cloud-native-labs.git#{{ GITHUB_REF }} --context-dir=solutions/lab-12 --name=jenkins-slave-gradle-rhel7 
+$ oc logs -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} -f bc/jenkins-slave-gradle-rhel7 
 ~~~
 
-You can verify that an image stream is created in the **`{{COOLSTORE_PROJECT}}`** for the Jenkins Gradle slave image:
+You can verify that an image stream is created in the **`{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`** for the Jenkins Gradle slave image:
 
 ~~~shell
-$ oc get is -n {{COOLSTORE_PROJECT}}
+$ oc get is -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 
 NAME                         DOCKER REPO                                     TAGS      
-jenkins-agent-maven-35-rhel7   docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}/jenkins-agent-maven-35-rhel7   v3.10     About a minute ago
-jenkins-slave-gradle-rhel7     docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-gradle-rhel7     latest    12 seconds ago
+jenkins-agent-maven-35-rhel7   docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}/jenkins-agent-maven-35-rhel7   v3.10     About a minute ago
+jenkins-slave-gradle-rhel7     docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}/jenkins-slave-gradle-rhel7     latest    12 seconds ago
 ~~~
  
 The image is ready in the registry and all is left is to add metadata to the image stream so that Jenkins master can discover this new slave image by assigning the label `role=jenkins-slave` to the image and also optionally annotate it with `slave-label=gradle` to specify the slave name which is by default the name of the image.
 
 ~~~shell
-$ oc label -n {{COOLSTORE_PROJECT}} is/jenkins-slave-gradle-rhel7 role=jenkins-slave
-$ oc annotate -n {{COOLSTORE_PROJECT}} is/jenkins-slave-gradle-rhel7 slave-label=gradle
+$ oc label -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} is/jenkins-slave-gradle-rhel7 role=jenkins-slave
+$ oc annotate -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} is/jenkins-slave-gradle-rhel7 slave-label=gradle
 ~~~
 
 When Jenkins master starts for the first time, it automatically scans the image registry for slave images and configures them on Jenkins. Since you use an ephemeral Jenkins (without persistent storage) in this lab, restarting Jenkins causes a fresh Jenkins container to be deployed and to run the automatic configuration and discovery at startup to configure the Gradle slave image. When using a persistent Jenkins, all configurations would be kept and be available on the new container as well and therefore the automatic scan would not get triggered to avoid overwriting user configurations in Jenkins. In that case, you can configure the Gradle jenkins slave by adding a *Kubernetes Pod Template* in Jenkins configuration panel.
@@ -98,8 +98,8 @@ First of all let's deploy Jenkins with ephemeral storage.
 Now let's deploy Jenkins with ephemeral storage.
 
 ~~~shell
-$  oc new-app -n {{COOLSTORE_PROJECT}} --template=jenkins-ephemeral
---> Deploying template "openshift/jenkins-ephemeral" to project {{COOLSTORE_PROJECT}}
+$  oc new-app -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} --template=jenkins-ephemeral
+--> Deploying template "openshift/jenkins-ephemeral" to project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 
      Jenkins (Ephemeral)
      ---------
@@ -171,7 +171,7 @@ spec:
 
 Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `gradle`. These are the steps that this pipeline conprehends:
 
-, test it, builds an image using a binary file (`ROOT.jar`), ... , deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
+, test it, builds an image using a binary file (`ROOT.jar`), ... , deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev`.
 
 * Checkout: from the git repository
 * Build: building the jar file (binary asset) using gradle
@@ -182,15 +182,15 @@ Now we're going to create an OpenShift Pipeline that embeds a pipeline definitio
 * Approve: manually approve/reject from Jenkins
 * Promote to DEV: tag image as `dev` ready which triggers the (re)deployment of the new image
 
-> The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}-dev`. 
-> Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccounts:coolstore-dev:default`
+> The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev`. 
+> Additionally the default service account in project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccounts:coolstore-dev:default`
 
 Please run this commands to fulfill the requisites referred to above.
 
 ~~~ shell
-$ oc policy add-role-to-user edit system:serviceaccounts:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-$ oc policy add-role-to-user view system:serviceaccounts:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-$ oc policy add-role-to-user system:image-puller system:serviceaccounts:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
+$ oc policy add-role-to-user edit system:serviceaccounts:{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}:jenkins -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
+$ oc policy add-role-to-user view system:serviceaccounts:{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}:jenkins -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
+$ oc policy add-role-to-user system:image-puller system:serviceaccounts:{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev:default -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 Now it's time to create the pipeline, to do so please run the next commands. Review the next note to adapt the following variables to your environment.
@@ -212,11 +212,11 @@ $ export GIT_REF="{{GITHUB_REF}}"
 
 **REMEMBER:**
 
-> * **`{{COOLSTORE_PROJECT}}`** should be **`{{COOLSTORE_PROJECT}}-XX`**
-> * **`{{COOLSTORE_PROJECT}}-dev`** should be **`{{COOLSTORE_PROJECT}}-dev-XX`**
+> * **`{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`** should be **`{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-XX`**
+> * **`{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev`** should be **`{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev-XX`**
 
 ~~~shell
-$ cat << EOF | oc create -n "{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}" -f -
+$ cat << EOF | oc create -n "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-${MY_USER_NUMBER}" -f -
 apiVersion: v1
 kind: BuildConfig
 metadata:
@@ -232,8 +232,8 @@ spec:
         def APP_NAME = "inventory"
         def APP_VERSION = "0.0.1-SNAPSHOT"
 
-        def PROJECT_NAME = "{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}"
-        def DEV_PROJECT_NAME = "{{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}"
+        def PROJECT_NAME = "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-${MY_USER_NUMBER}"
+        def DEV_PROJECT_NAME = "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev-${MY_USER_NUMBER}"
 
         def GIT_URL = "${GIT_URL}"
         def GIT_REF = "${GIT_REF}"
@@ -375,7 +375,7 @@ EOF
 Now it's time to start our pipe-line, we can do this either from the CLI.
 
 ~~~shell
-$ oc start-build bc/karma-pipeline-complex -n {{COOLSTORE_PROJECT}}
+$ oc start-build bc/karma-pipeline-complex -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 build "karma-pipeline-complex-5" started
 ~~~
 
@@ -386,6 +386,6 @@ Or from the web-console, **Builds ➡ Pipelines**
 After a successful pipeline built we should be able to run the following curl test with success.
 
 ~~~shell
-$ curl http://inventory-{{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}.${APP_BASE}/api/inventory
+$ curl http://inventory-{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev-${MY_USER_NUMBER}.${APP_BASE}/api/inventory
 [{"itemId":"329299","quantity":35},{"itemId":"329199","quantity":12},{"itemId":"165613","quantity":45},{"itemId":"165614","quantity":87},{"itemId":"165954","quantity":43},{"itemId":"444434","quantity":32},{"itemId":"444435","quantity":53}]
 ~~~

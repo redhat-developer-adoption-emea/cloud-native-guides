@@ -206,7 +206,7 @@ The above command creates a new build config of type pipeline which is automatic
 configured to fetch the `Jenkinsfile` from the Git repository of the current folder 
 (`inventory-wildfly-swarm` Git repository) and execute it on Jenkins.
 
-Go OpenShift Web Console inside the **{{COOLSTORE_PROJECT}}** project and from the left sidebar 
+Go OpenShift Web Console inside the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** project and from the left sidebar 
 click on **Builds >> Pipelines**
 
 ![OpenShift Pipeline]({% image_path cd-pipeline-inprogress.png %}){:width="900px"}

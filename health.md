@@ -184,7 +184,7 @@ configured as you wanted:
 $ oc describe dc/inventory
 
 Name:       inventory
-Namespace:  {{COOLSTORE_PROJECT}}
+Namespace:  {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ...
   Containers:
    wildfly-swarm:
@@ -210,7 +210,7 @@ ready to receive traffic.
 Although you can add the liveness and health probes to the Web UI using a single CLI command, let's 
 give the OpenShift Web Console a try this time.
 
-Go the OpenShift Web Console in your browser and in the **{{COOLSTORE_PROJECT}}** project. Click on 
+Go the OpenShift Web Console in your browser and in the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** project. Click on 
 **Applications >> Deployments** on the left-side bar. Click on `web` and then the **Configuration** 
 tab. You will see the warning about health checks, with a link to
 click in order to add them. Click **Add health checks** now. 

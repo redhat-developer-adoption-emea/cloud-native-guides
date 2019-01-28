@@ -308,7 +308,7 @@ OpenShift CLI:
 $ oc get routes
 
 NAME        HOST/PORT                                        PATH       SERVICES  PORT  TERMINATION   
-inventory   inventory-{{COOLSTORE_PROJECT}}.roadshow.openshiftapps.com   inventory  8080            None
+inventory   inventory-{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}.roadshow.openshiftapps.com   inventory  8080            None
 ~~~
 
 Copy the route url for the Inventory service and verify the API Gateway service works using `curl`:

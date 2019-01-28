@@ -8,6 +8,7 @@ vars:
   GITHUB_REF: "ocp-3.10"
   OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.10"
   COOLSTORE_PROJECT: "coolstore"
+  PROJECT_SUFFIX: "-XX"
   DOWNLOAD_CLIENT_WINDOWS: https://mirror.openshift.com/pub/openshift-v3/clients/3.10.23/windows/oc.zip
   DOWNLOAD_CLIENT_MAC: https://mirror.openshift.com/pub/openshift-v3/clients/3.10.23/macosx/oc.tar.gz
   DOWNLOAD_CLIENT_LIN64: https://mirror.openshift.com/pub/openshift-v3/clients/3.10.23/linux/oc.tar.gz

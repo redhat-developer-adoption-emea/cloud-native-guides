@@ -16,7 +16,7 @@ Let's check we're at the righ project.
 
 ~~~shell
 $ oc project
-Using project {{COOLSTORE_PROJECT}} on server "https://192.168.64.13:8443".
+Using project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} on server "https://192.168.64.13:8443".
 ~~~
 
 Let's create a BuildConfig with a custom [S2I image](https://github.com/jorgemoralespou/s2i-java) by Jorge Morales.

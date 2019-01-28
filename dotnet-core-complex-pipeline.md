@@ -1,24 +1,26 @@
+TODO: windows versions of scripts!
+
 ## Creating a complex .Net Core based Jenkins pipeline
 
 This lab is a spin-off of s set of labs regarding CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
 
-Here we're going to use a custom Jenkins slave to build NodeJS + Angular 6 application running a pipeline which will run dotnet-core tests on a custom image where we have installed Chrome and NG.
-
+As a continuation of the previous lab we're going to use our custom Jenkins Slave (see previous lab) to build our new inventory service using [.Net Core](https://dotnet.microsoft.com/).
 
 #### Building a complex pipe-line leveraging our custom Jenkins slave
 
-Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `dotnet`, test it, builds an image, deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}-dev`.
+Now we're going to create an OpenShift Pipeline that embeds a pipeline definition that builds our app using `dotnet`, test it, builds an image, deploy the app and promote the image to our dev environment `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev`.
 
-> The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}-dev`. 
-> Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccount:coolstore-dev:default`
+> The next pipeline (or to be precise Jenkins' service account in project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`) needs to be able to `edit` and `view` contents in project `{{COOLSTORE_PROJECT}}-dev{{PROJECT_SUFFIX}}`. 
+> Additionally the default service account in project `{{COOLSTORE_PROJECT}}-dev{{PROJECT_SUFFIX}}` needs to be able to pull an image from an image stream in project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`, this means we have to add this role `system:image-puller` to this service account `system:serviceaccount:{{COOLSTORE_PROJECT}}-dev{{PROJECT_SUFFIX}}:default`
 
 Please run this commands to fulfill the requisites referred to above.
 
 ~~~ shell
 $ export MY_USER_NUMBER="XX"
-$ oc policy add-role-to-user edit system:serviceaccount:coolstore-${MY_USER_NUMBER}:jenkins -n coolstore-dev-${MY_USER_NUMBER}
-$ oc policy add-role-to-user view system:serviceaccount:coolstore-${MY_USER_NUMBER}:jenkins -n coolstore-dev-${MY_USER_NUMBER}
-$ oc policy add-role-to-user system:image-puller system:serviceaccount:coolstore-dev-${MY_USER_NUMBER}:default -n coolstore-${MY_USER_NUMBER}
+$ oc new-project coolstore-dev-${MY_USER_NUMBER}
+$ oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}:jenkins -n {{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}
+$ oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}:jenkins -n {{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}
+$ oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev-${MY_USER_NUMBER}:default -n {{COOLSTORE_PROJECT}}-${MY_USER_NUMBER}
 ~~~
 
 Now it's time to create the pipeline, to do so please run the next commands. Review the next note to adapt the following variables to your environment.
@@ -204,7 +206,7 @@ EOF
 Now it's time to start our pipe-line, we can do this either from the CLI.
 
 ~~~shell
-$ oc start-build bc/dotnet-core-pipeline-complex -n {{COOLSTORE_PROJECT}}
+$ oc start-build bc/dotnet-core-pipeline-complex -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 build "dotnet-core-pipeline-complex-5" started
 ~~~
 
@@ -212,7 +214,7 @@ Or from the web-console, **Builds ➡ Pipelines**
 
 ![Pipeline Log]({% image_path devops-start-build-karma-tests-pipeline.png %}){:width="740px"}
 
-After a successful pipeline built we should be able to visit our NodeJS application. Please go to {{COOLSTORE_PROJECT}}-dev project and have a look to the Overview area, it should look like this. 
+After a successful pipeline built we should be able to visit our NodeJS application. Please go to {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev project and have a look to the Overview area, it should look like this. 
 
 ![Pipeline Log]({% image_path devops-karma-tests-overview.png %}){:width="740px"}
 

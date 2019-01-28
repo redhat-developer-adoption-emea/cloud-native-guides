@@ -234,9 +234,9 @@ deploying your applications.
 > have a unique project name for yourself e.g. appending your username to the project name
 
 ~~~shell
-$ oc new-project {{COOLSTORE_PROJECT}}
+$ oc new-project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 
-Now using project "{{COOLSTORE_PROJECT}}" on server ...
+Now using project "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}" on server ...
 ...
 ~~~
 
@@ -249,7 +249,7 @@ The first screen you will see is the authentication screen. Enter your username 
 then log in. After you have authenticated to the web console, you will be presented with a
 list of projects that your user has permission to work with. 
 
-Click on the **{{COOLSTORE_PROJECT}}** project to be taken to the project overview page
+Click on the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** project to be taken to the project overview page
 which will list all of the routes, services, deployments, and pods that you have
 running as part of your project. There's nothing there now, but that's about to
 change.

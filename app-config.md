@@ -117,7 +117,7 @@ packaged in the Inventory JAR archive:
 $ oc create configmap inventory --from-file=./project-defaults.yml
 ~~~
 
-> If you don't like bash commands, Go to the **{{COOLSTORE_PROJECT}}** 
+> If you don't like bash commands, Go to the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** 
 > project in OpenShift Web Console and then on the left sidebar, **Resources >> Config Maps**. Click 
 > on **Create Config Map** button to create a config map with the following info:
 > 
@@ -254,14 +254,14 @@ Although Spring Cloud Kubernetes tries to discover config maps, due to security 
 by default are not allowed to snoop around OpenShift clusters and discover objects. Security comes first, 
 and discovery is a privilege that needs to be granted to containers in each project. 
 
-Since you do want Spring Boot to discover the config maps inside the `{{COOLSTORE_PROJECT}}` project, you 
+Since you do want Spring Boot to discover the config maps inside the `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` project, you 
 need to grant permission to the Spring Boot service account to access the OpenShift REST API and find the 
 config maps. However you have done this already in previous labs and no need to grant permission again. 
 
 > For the record, you can grant permission to the default service account in your project using this 
 command: 
 > 
->     $ oc policy add-role-to-user view -n {{COOLSTORE_PROJECT}} -z default
+>     $ oc policy add-role-to-user view -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} -z default
 
 Delete the Catalog container to make it start again and look for the config maps:
 
@@ -351,7 +351,7 @@ This secret has two encrypted properties defined as `database-user` and `databas
 the PostgreSQL username and password values. These values are injected in the PostgreSQL container as 
 environment variables and used to initialize the database.
 
-Go to the **{{COOLSTORE_PROJECT}}** in the OpenShift Web Console and click on the `catalog-postgresql` 
+Go to the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** in the OpenShift Web Console and click on the `catalog-postgresql` 
 deployment (blue text under the title **Deployment**) and then on the **Environment**. Notice the values 
 from the secret are defined as env vars on the deployment:
 

@@ -44,23 +44,114 @@ Click on the menu as in the picture, then click on `Download (YAML)`
 
 #### Generating the code
 
-In ordet to generate the c# (.Net Core) code (stub/façade) we're going to use the [**Open API Generator**](https://github.com/openapitools/openapi-generator). These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
+In ordet to generate the C# (.Net Core) code (stub/façade) we're going to use the [**Open API Generator**](https://github.com/openapitools/openapi-generator). These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
+
+> **Note:** we're going to use a configuration file (`openapi-config.json`) in order to change the generated project/package name from a default name to Coolstore.Inventory
+
+With the next set of commands we're going to create a folder, change to it, create a config file (mentioned above), download Open API Generator CLI and use it to generate the .Net code from our API specification.
+
+**For Windows systems.**
+
+Let's create a folder named `inventory-dotnet-core-lab` for this lab.
 
 ~~~shell
-$ mkdir inventory-dotnet-core-lab && cd inventory-dotnet-core-lab
+> mkdir inventory-dotnet-core-lab
+~~~
+
+> Copy `Inventory API.yaml` (or the name you gave it when you download it) to folder `inventory-dotnet-core-lab`.
+
+Next you'll create a `bin` folder, download the API Generator CLI...
+
+~~~shell
+> cd inventory-dotnet-core-lab
+> mkdir .\bin
+> bitsadmin /create myDownloadJob
+> bitsadmin /addfile myDownloadJob http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.3.4/openapi-generator-cli-3.3.4.jar .\bin\openapi-generator-cli.jar
+> bitsadmin /info myDownloadJob /verbose
+~~~
+
+Wait until the download job has finished...
+
+~~~shell
+> bitsadmin /complete myDownloadJob
+> set OUTPUT_DIR="inventory-gen"
+~~~
+
+Open an editor and copy/paste this content, then save it in `inventory-dotnet-core-lab`.
+
+~~~json
+{
+    "packageName" : "Coolstore.Inventory"
+}
+~~~
+
+Finally let's generate the code.
+
+~~~shell
+> java -jar ./bin/openapi-generator-cli.jar generate -i "Inventory API.yaml" -g aspnetcore -o %OUTPUT_DIR% -c openapi-config.json
+~~~
+
+**For *nix systems.**
+
+Let's create a folder named `inventory-dotnet-core-lab` for this lab.
+
+~~~shell
+$ mkdir inventory-dotnet-core-lab
+~~~
+
+> Copy `Inventory API.yaml` (or the name you gave it when you download it) to folder `inventory-dotnet-core-lab`.
+
+Next you'll create a `bin` folder, download the API Generator CLI...
+
+~~~shell
+$ cd inventory-dotnet-core-lab
+$ cat << EOF > openapi-config.json
+{
+    "packageName" : "Coolstore.Inventory"
+}
+EOF
 $ mkdir ./bin
 $ curl -L -o ./bin/openapi-generator-cli.jar http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.3.4/openapi-generator-cli-3.3.4.jar
 $ export OUTPUT_DIR="inventory-gen"
-$ java -jar ./bin/openapi-generator-cli.jar generate -i Inventory\ API.yaml -g aspnetcore -o $OUTPUT_DIR
+~~~
+
+Finally let's generate the code.
+
+~~~shell
+$ java -jar ./bin/openapi-generator-cli.jar generate -i Inventory\ API.yaml -g aspnetcore -o $OUTPUT_DIR -c openapi-config.json
+~~~
+
+#### Restoring NuGet packages
+
+> Please change to folder OUTPUT_DIR, if you haven't already.
+
+Now let's restore NuGet packages before proceeding to fix the errors.
+
+~~~shell
+dotnet restore
+~~~
+
+You should see something like this...
+
+~~~shell
+Restoring packages for .../src/Coolstore.Inventory/Coolstore.Inventory.csproj...
+  Restore completed in 82.5 ms for .../src/Coolstore.Inventory/Coolstore.Inventory.csproj.
+  Generating MSBuild file .../src/Coolstore.Inventory/obj/Coolstore.Inventory.csproj.nuget.g.props.
+  Generating MSBuild file .../src/Coolstore.Inventory/obj/Coolstore.Inventory.csproj.nuget.g.targets.
+  Restore completed in 1.5 sec for .../src/Coolstore.Inventory/Coolstore.Inventory.csproj.
 ~~~
 
 #### [Temporary] Fixing the error in DefaultApi.cs
 
 [Open API Generator](https://github.com/openapitools/openapi-generator) generates a proper C# API server stub but introduces a couple of errors when copying the reponse examples provided within the specification.
 
-These two errors are in `src/Org.OpenAPITools/Controllers/DefaultApi.cs` please follow the instructions below to fix them.
+These two errors are in `src/Coolstore.Inventory/Controllers/DefaultApi.cs` please follow the instructions below to fix them.
 
-Locate the following piece of code in `DefaultApi.cs`, as you can see corresponds to the `GET` operation to get all the inventory items. 
+> Please change to folder OUTPUT_DIR, if you haven't already, and open Visual Studio Code there.
+
+Locate the following piece of code in `DefaultApi.cs`, as you can see corresponds to the `GET` operation to get all the inventory items.
+
+> If you see more errors please check you have run the `restore` command to restore the needed NuGet packages
 
 **Original code**
 
@@ -145,35 +236,203 @@ It should be:
 exampleJson = "{\"itemId\":\"329299\",\"quantity\":35}";
 ~~~
 
-> If you're curious the original JSON version of our specification is here `src/Org.OpenAPITools/wwwroot/openapi-original.json`
-
+> If you're curious the original JSON version of our specification is here `src/Coolstore.Inventory/wwwroot/openapi-original.json`
 
 #### Testing the API
 
-In order to test the API locally, you need to be in the folder where we have run the commands to generate the code. From that folder you should be able to run the following command.
+In order to test the API locally, you need to be in the folder where we have run the commands to generate the code, **OUTPUT_DIR**. From that folder you should be able to run the following command.
 
-> Pay attention to the `-p` flag, as you can see it points to the project file inside $OUTPUT_DIR. This environement variable was populated before with "inventory-gen"
+> Pay attention to the `-p` flag, as you can see it points to the project file inside **OUTPUT_DIR**. This environment variable was populated before with `inventory-gen`
 
 ~~~shell
-$ dotnet run -p $OUTPUT_DIR/src/Org.OpenAPITools/Org.OpenAPITools.csproj
+dotnet run -p ./src/Coolstore.Inventory/Coolstore.Inventory.csproj
+~~~
+
+You should see something like...
+
+~~~shell
 Hosting environment: Development
-Content root path: /Users/cvicensa/Projects/openshift/aramco/inventory-dotnet-core/inventory-gen/src/Org.OpenAPITools
+Content root path: .../inventory-dotnet-core-lab/inventory-gen/src/Coolstore.Inventory
 Now listening on: http://0.0.0.0:8080
 Application started. Press Ctrl+C to shut down.
 ~~~
 
-Let's test the `/api/inventory` path from another terminal window.
+Open a browser and open http://localhost:8080.
 
-~~~shell
-$ curl http://localhost:8080/api/inventory
+![Pipeline Log]({% image_path dotnet-swagger-ui-tests.png %}){:width="740px"}
+
+
+Let's test both the `/api/inventory` and `/api/inventory/{itemId}`, for the former you should get.
+
+~~~json
 [{"itemId":"329299","quantity":35},{"itemId":"329199","quantity":12},{"itemId":"165613","quantity":45},{"itemId":"165614","quantity":87},{"itemId":"165954","quantity":43},{"itemId":"444434","quantity":32},{"itemId":"444435","quantity":53}]
 ~~~
 
-Finally let's test the `/api/inventory/{itemId}`.
+For the latter you should get this.
+
+~~~json
+{"itemId":"329299","quantity":35}
+~~~
+
+#### Adding monitoring support to your API with Prometheus
+
+> **Prometheus** is an open-source systems monitoring and alerting toolkit originally built at [SoundCloud](http://soundcloud.com/). Since its inception in 2012, many companies and organizations have adopted Prometheus, and the project has a very active developer and user community. It is now a standalone open source project and maintained independently of any company. To emphasize this, and to clarify the project's governance structure, Prometheus joined the [Cloud Native Computing Foundation](https://cncf.io/) in 2016 as the second hosted project, after Kubernetes.
+
+For this lab, Prometheus has already been provisioned, ask your instructor about how you can do it yourself with [Operator Framework](https://docs.openshift.com/container-platform/3.11/install_config/installing-operator-framework.html).
+
+Prometheus will expect your API to expose metrics in a certain way in a given endpoint `/metrics`.
+
+> Check you're in the **OUTPUT_DIR** before proceeding.
+
+Let's add a couple of packages to our API via NuGet to provide to our API with the Prometheus metrics endpoint.
+
+> These packages are open source and the code can be found [here](https://github.com/prometheus-net/prometheus-net).
+
+~~~
+dotnet add src/Coolstore.Inventory/Coolstore.Inventory.csproj package prometheus-net
+dotnet add src/Coolstore.Inventory/Coolstore.Inventory.csproj package prometheus-net.AspNetCore
+~~~
+
+Now we have modify our `Startup.cs` to inject Prometheus support. Please open` ./src/Coolstore.Inventory/Startup.cs` and locate function `Configure()`. Add the following right after **app.UseHttpsRedirection();**
+
+~~~
+// Prometheus support
+app.UseMetricServer();
+~~~
+
+...as in here
+
+~~~csharp
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    app.UseHttpsRedirection();
+    
+    // Prometheus support
+    app.UseMetricServer();
+
+    app
+        .UseMvc()
+    ...
+~~~
+
+Don't forget import the Prometheus library `using Prometheus;`
+
+So far, we have added Prometheus support and if you execute the code again you should be able to invoke `/metrics` but we haven't added our own "business" metrics, so let's do it now.
+
+Go to ./src/Controllers/DefaultApi.cs and locate **public class DefaultApiController : ControllerBase**, we're going to add a private property of type Counter and a constructor to declare it.
+
+Please modify your **DefaultApiController** as follows... As you can see we're defining three labes, namely:
+
+- **api**, for the API name, inventory in our case...
+- **method**, POST, GET, etc.
+- **endpoint**, /api/...
+
+~~~csharp
+public class DefaultApiController : ControllerBase
+{ 
+    private Counter apiHttpRequestsTotalCounter;
+
+    public DefaultApiController()
+    {
+        apiHttpRequestsTotalCounter = Metrics.CreateCounter("api_http_requests_total", "Counts get ...", new CounterConfiguration {
+            LabelNames = new[] { "api", "method", "endpoint" }
+        });
+    }
+    
+    /// <summary>
+    /// 
+    ...
+~~~
+
+Now that we have declared and defined our counter it's time to use it. We want to count everytime a request is received in `/api/inventory` and in `/api/inventory/{itemId}`.
+
+Locate the function **ApiInventoryGet** and add...
+
+~~~csharp
+apiHttpRequestsTotalCounter.WithLabels("inventory", "GET", "/api/inventory").Inc();
+~~~
+
+As in here...
+
+~~~csharp
+[HttpGet]
+[Route("/api/inventory")]
+[ValidateModelState]
+[SwaggerOperation("ApiInventoryGet")]
+[SwaggerResponse(statusCode: 200, type: typeof(List<InventoryItem>), description: "Should return an arry of InventoryItems")]
+public virtual IActionResult ApiInventoryGet()
+{ 
+    apiHttpRequestsTotalCounter.WithLabels("inventory", "GET", "/api/inventory").Inc();
+
+    //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+    // return StatusCode(200, default(List<InventoryItem>));
+
+    string exampleJson = null;
+    exampleJson = "[{\"itemId\":\"329299\",\"quantity\":35},{\"itemId\":\"329199\",\"quantity\":12},{\"itemId\":\"165613\",\"quantity\":45},{\"itemId\":\"165614\",\"quantity\":87},{\"itemId\":\"165954\",\"quantity\":43},{\"itemId\":\"444434\",\"quantity\":32},{\"itemId\":\"444435\",\"quantity\":53}]";
+    
+    var example = exampleJson != null
+    ? JsonConvert.DeserializeObject<List<InventoryItem>>(exampleJson)
+    : default(List<InventoryItem>);
+    //TODO: Change the data returned
+    return new ObjectResult(example);
+}
+~~~
+
+Now locate the function **ApiInventoryItemIdGet** and add...
+
+~~~csharp
+apiHttpRequestsTotalCounter.WithLabels("inventory", "GET", "/api/inventory/{itemId}").Inc();
+~~~
+
+As in here...
+
+~~~csharp
+[HttpGet]
+[Route("/api/inventory/{itemId}")]
+[ValidateModelState]
+[SwaggerOperation("ApiInventoryItemIdGet")]
+[SwaggerResponse(statusCode: 200, type: typeof(InventoryItem), description: "Should return the item for the id provided")]
+[SwaggerResponse(statusCode: 404, type: typeof(GenericError), description: "Item not found")]
+public virtual IActionResult ApiInventoryItemIdGet([FromRoute][Required]string itemId)
+{ 
+    apiHttpRequestsTotalCounter.WithLabels("inventory", "GET", "/api/inventory/{itemId}").Inc();
+    
+    //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+    // return StatusCode(200, default(InventoryItem));
+
+    //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
+    // return StatusCode(404, default(GenericError));
+
+    string exampleJson = null;
+    exampleJson = "{\"itemId\":\"329299\",\"quantity\":35}";
+    
+    var example = exampleJson != null
+    ? JsonConvert.DeserializeObject<InventoryItem>(exampleJson)
+    : default(InventoryItem);
+    //TODO: Change the data returned
+    return new ObjectResult(example);
+}
+~~~
+
+Finally, let's run our code again.
 
 ~~~shell
-$ curl http://localhost:8080/api/inventory/329299
-{"itemId":"329299","quantity":35}
+dotnet run -p ./src/Coolstore.Inventory/Coolstore.Inventory.csproj
+~~~
+
+Open a browser and test the APIs as we did before.
+
+Once you have tested some times both API endpoints please open another tab in your browser and point to `/metrics`, you should get something like this. In this case **4** request were processed in **/api/inventory/{itemId}** and only **2** in **/api/inventory**
+
+> You can check that apart from our counter... there other useful metrics...
+
+~~~
+...
+# HELP api_http_requests_total Counts get ...
+# TYPE api_http_requests_total counter
+api_http_requests_total{api="inventory",method="GET",endpoint="/api/inventory"} 2
+api_http_requests_total{api="inventory",method="GET",endpoint="/api/inventory/{itemId}"} 4
+...
 ~~~
 
 So far so good, now we have to create a git repo and push our code to it.
@@ -250,7 +509,7 @@ Enter your Git repository username and password if you get asked to enter your c
 
 Deploying a .Net Core application on Openshift is no different than deploying a Java or NodeJS application using Openshift S2I (or Source to Image).
 
-In order to deploy our API using the web console, open your `{{ COOLSTORE_PROJECT }}` and click on `Catalog` (bottom-left corner). Now choose `.Net Core`.
+In order to deploy our API using the web console, open your `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` and click on `Catalog` (bottom-left corner). Now choose `.Net Core`.
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-01.png %}){:width="740px"}
 
@@ -291,27 +550,8 @@ Once the pod is ready, it's color changes to bright blue. Now you can click on t
 
 #### Testing our .Net Core API on OpenShift
 
-You can use the API tests page.
+As we have done before, you can use the API tests page.
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-10.png %}){:width="740px"}
-
-Or instead you can run the tests as we did before but this time pointing to the exposed URL in Openshift.
-
-*Get all the inventory items.*
-
-~~~shell
-$ curl http://inventory-dotnet-core-coolstore.apps.serverless.openshiftworkshop.com/api/inventory
-[{"itemId":"329299","quantity":35},{"itemId":"329199","quantity":12},
-{"itemId":"165613","quantity":45},{"itemId":"165614","quantity":87},
-{"itemId":"165954","quantity":43},{"itemId":"444434","quantity":32},
-{"itemId":"444435","quantity":53}]
-~~~
-
-*Get a given item by id.*
-
-~~~shell
-$ curl http://inventory-dotnet-core-coolstore.apps.serverless.openshiftworkshop.com/api/inventory/329299
-{"itemId":"329299","quantity":35}
-~~~
 
 Well done! You are ready to move on to the next lab.

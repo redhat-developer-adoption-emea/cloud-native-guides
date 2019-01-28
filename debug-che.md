@@ -210,7 +210,7 @@ $ git push origin master
 
 As soon as you commit the changes to the Git repository, the `inventory-pipeline` gets 
 triggered to build and deploy a new Inventory container with the fix. Go to the 
-OpenShift Web Console and inside the **{{COOLSTORE_PROJECT}}** project. On the sidebar 
+OpenShift Web Console and inside the **{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}** project. On the sidebar 
 menu, Click on **Builds >> Pipelines** to see its progress.
 
 When the pipeline completes successfully, point your browser at the Web route and verify 

@@ -1,45 +1,30 @@
-// In order for this pipeline to work PROJECT_NAME and DEV_PROJECT_NAME has to be created beforehand!
-
-// oc new-project coolstore-dev
-
-// oc policy add-role-to-user edit system:serviceaccount:coolstore:jenkins -n coolstore-dev
-// oc policy add-role-to-user view system:serviceaccount:coolstore:jenkins -n coolstore-dev
-// oc policy add-role-to-user system:image-puller system:serviceaccount:coolstore-dev:default -n coolstore
-
-// oc policy add-role-to-user edit system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-// oc policy add-role-to-user view system:serviceaccount:{{COOLSTORE_PROJECT}}:jenkins -n {{COOLSTORE_PROJECT}}-dev
-// oc policy add-role-to-user system:image-puller system:serviceaccount:{{COOLSTORE_PROJECT}}-dev:default -n {{COOLSTORE_PROJECT}}
-
 def GUID = "serverless-3bf7"
 
-def APP_NAME = "inventory-dotnet-core"
+def APP_NAME = "inventory-dotnet-core-complex"
 def APP_VERSION = "0.0.1-SNAPSHOT"
 
 def PROJECT_NAME = "coolstore-01"
-def DEV_PROJECT_NAME = PROJECT_NAME + "-dev-01"
+def DEV_PROJECT_NAME = "coolstore-dev-01"
 
 def GIT_URL = "https://github.com/redhat-developer-adoption-emea/cloud-native-labs"
 def GIT_REF = "ocp-3.10"
 def CONTEXT_DIR = "solutions/lab-2-dotnet-core/inventory-dotnet-core"
 
-def DOTNET_STARTUP_PROJECT = "src/Org.OpenAPITools"
-def DOTNET_FRAMEWORK = "netcoreapp2.1"
-def DOTNET_CONFIGURATION = "Release"
-def DOTNET_APP_PATH = "/tmp/build"
-def RESTORE_OPTIONS = ""
-def VERBOSITY_OPTION = 5
-
-def NEXUS = "http://nexus-lab-infra.apps.${GUID}.openshiftworkshop.com"
-def NEXUS_USERNAME = "admin"
-def NEXUS_PASSWORD = "admin123"
-def NEXUS_PATH = "com/redhat/cloudnative/inventory"
-
-def SONAR = "http://sonarqube-lab-infra.apps.${GUID}.openshiftworkshop.com"
-def SONAR_TOKEN = "f7d35ff77556cdf83fc0b78311201c4a2dd7227b"
-
 def BUILD_NAME = APP_NAME
 def BUILD_IMAGE_STREAM = "dotnet:2.1"
-    
+
+def DOTNET_STARTUP_PROJECT = "src/Org.OpenAPITools/Org.OpenAPITools.csproj"
+def DOTNET_FRAMEWORK = "netcoreapp2.1"
+def DOTNET_CONFIGURATION = "Release"
+def DOTNET_APP_PATH = "/tmp/publish"
+
+def DOTNET_PROJECT_KEY = "Org.OpenAPITools"
+def DOTNET_PROJECT_NAME = "Org.OpenAPITools"
+def DOTNET_PROJECT_VERSION = "1.0"
+
+def SONAR_HOST = "http://sonarqube-lab-infra.apps.${GUID}.openshiftworkshop.com"
+def SONAR_TOKEN = "50cf600faefa2fe5fb09eaef5ce7691363e2d6b9"
+
 pipeline {
   agent {
     label 'dotnet'
@@ -55,8 +40,8 @@ pipeline {
         steps {
             //slackSend (color: '#ff0000', message: "Building")
             dir("${CONTEXT_DIR}") {
-                sh "dotnet restore \"${DOTNET_STARTUP_PROJECT}\" ${RESTORE_OPTIONS} ${VERBOSITY_OPTION}"
-                sh "dotnet publish \"${DOTNET_STARTUP_PROJECT}\" -f \"${DOTNET_FRAMEWORK}\" -c \"${DOTNET_CONFIGURATION}\" ${VERBOSITY_OPTION} --self-contained false /p:PublishWithAspNetCoreTargetManifest=false --no-restore -o \"${DOTNET_APP_PATH}\""
+                sh "dotnet restore \"${DOTNET_STARTUP_PROJECT}\""
+                sh "dotnet publish \"${DOTNET_STARTUP_PROJECT}\" -f \"${DOTNET_FRAMEWORK}\" -c \"${DOTNET_CONFIGURATION}\"  --self-contained false /p:PublishWithAspNetCoreTargetManifest=false --no-restore -o \"${DOTNET_APP_PATH}\""
             }
         }
     }
@@ -64,7 +49,7 @@ pipeline {
     stage('Test') {
         steps {
             dir("${CONTEXT_DIR}") {
-                sh "echo dotnet test..."
+                sh "echo TODO dotnet test..."
             }
         }
     }
@@ -73,12 +58,11 @@ pipeline {
         steps {
             script {
                 dir("${CONTEXT_DIR}") {
-                  // https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+MSBuild
-                  // dotnet tool install --global dotnet-sonarscanner
-                  // dotnet sonarscanner begin /k:"project-key"
-                  // dotnet build <path to solution.sln>
-                  // dotnet sonarscanner end
-                  sh "echo dotnet sonarqube plugin..."
+                    // https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+MSBuild
+                    sh "mono /opt/sonar-scanner-msbuild/SonarScanner.MSBuild.exe begin /d:sonar.host.url=$SONAR_HOST /d:sonar.login=$SONAR_TOKEN /k:$DOTNET_PROJECT_KEY /n:\"$DOTNET_PROJECT_NAME\" /v:$DOTNET_PROJECT_VERSION"
+                    sh "dotnet restore \"${DOTNET_STARTUP_PROJECT}\""
+                    sh "dotnet build \"${DOTNET_STARTUP_PROJECT}\""
+                    sh "mono /opt/sonar-scanner-msbuild/SonarScanner.MSBuild.exe end /d:sonar.login=$SONAR_TOKEN"
                 }
             }
         }

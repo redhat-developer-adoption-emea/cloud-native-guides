@@ -1,8 +1,6 @@
 ## Creating a custom .Net Core Jenkins Slave Pods
 
-This lab is part of a more to the point with regards to CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
-
-As a continuation of the previous lab we're going to use a custom Jenkins slave to build our new inventory service using [.Net Core](https://dotnet.microsoft.com/).
+This lab is a spin-off of s set of labs regarding CI/CD, you can find the original version [here](https://github.com/openshift-labs/devops-guides).
 
 #### Background
 
@@ -29,40 +27,66 @@ Note that this scanning is only performed once, when the Jenkins master is start
 The Red Hat Developer team has put together scripts and Dockerfiles to create Jenkins Slave images for .Net Core (both RHEL and Centos), you can find them [here](https://github.com/redhat-developer/dotnet-jenkins-slave). For the sake of simplicity we have borrowed those for version 2.2 and put them in folder `solutions/lab/lab-12-dotnet-core`. Here is the content of the [Dockerfile on GitHub](https://raw.githubusercontent.com/redhat-developer-adoption-emea/cloud-native-labs/{{ GITHUB_REF }}/solutions/lab-12-docker-core/Dockerfile) for building the Gradle slave image:
 
 ~~~shell
-FROM openshift/jenkins-slave-base-centos7
+FROM openshift/jenkins-slave-base-centos7:v3.10
 
 # Labels consumed by Red Hat build service
-LABEL com.redhat.component="rh-dotnet22-jenkins-slave-docker" \
-      name="dotnet/dotnet-22-jenkins-slave-centos7" \
-      version="2.2" \
+LABEL com.redhat.component="rh-dotnet21-jenkins-slave-docker" \
+      name="dotnet/dotnet-21-jenkins-slave-centos7" \
+      version="2.1" \
       architecture="x86_64" \
       release="1" \
-      io.k8s.display-name="Jenkins Slave .NET Core 2.2" \
+      io.k8s.display-name="Jenkins Slave .NET Core 2.1" \
       io.k8s.description="The jenkins slave dotnet image has the dotnet tools on top of the jenkins slave base image." \
-      io.openshift.tags="openshift,jenkins,slave,dotnet,dotnet22"
+      io.openshift.tags="openshift,jenkins,slave,dotnet,dotnet21"
 
 # Don't download/extract docs for nuget packages
 # Don't do initially populate of package cache
 # Enable nodejs and dotnet scl
-ENV DOTNET_CORE_VERSION=2.2 \
+ENV DOTNET_CORE_VERSION=2.1 \
     BASH_ENV=/usr/local/bin/scl_enable \
     ENV=/usr/local/bin/scl_enable \
     PROMPT_COMMAND=". /usr/local/bin/scl_enable" \
-    ENABLED_COLLECTIONS="rh-nodejs8 rh-dotnet22" \
+    ENABLED_COLLECTIONS="rh-nodejs8 rh-dotnet21" \
     NUGET_XMLDOC_MODE=skip \
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
+    SONAR_SCANNER_MSBUILD_VERSION=4.3.1.1372 \
+    SONAR_SCANNER_VERSION=3.2.0.1227 \
+    SONAR_SCANNER_MSBUILD_HOME=/opt/sonar-scanner-msbuild \
+    PATH="$SONAR_SCANNER_MSBUILD_HOME:$SONAR_SCANNER_MSBUILD_HOME/sonar-scanner-$SONAR_SCANNER_VERSION/bin:${PATH}"
 
 COPY contrib/bin/scl_enable /usr/local/bin/scl_enable
 
 # Install
+RUN INSTALL_PKGS="java-1.8.0-openjdk-devel.x86_64" && \
+    x86_EXTRA_RPMS=$(if [ "$(uname -m)" == "x86_64" ]; then echo -n java-1.8.0-openjdk-devel.i686 ; fi) && \
+    yum install -y centos-release-scl-rh && \
+    yum install -y --enablerepo=centosplus $INSTALL_PKGS $x86_EXTRA_RPMS && \
+    rpm -V java-1.8.0-openjdk-devel.x86_64 $x86_EXTRA_RPMS
+
 RUN yum install -y centos-release-dotnet centos-release-scl-rh && \
-    INSTALL_PKGS="rh-dotnet22 rh-nodejs8-npm" && \
+    INSTALL_PKGS="rh-dotnet21 rh-nodejs8-npm" && \
     yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all -y && \
-# yum cache files may still exist (and quite large in size)
-    rm -rf /var/cache/yum/*
+    # yum cache files may still exist (and quite large in size)
+    rm -rf /var/cache/yum/*    
 
+# Installing mono
+# https://www.mono-project.com/download/stable/#download-lin-centos
+RUN rpm --import "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF" && \
+    curl https://download.mono-project.com/repo/centos7-stable.repo | tee /etc/yum.repos.d/mono-centos7-stable.repo && \
+    yum install -y mono-complete
+
+# Installing Sonarqube plugin
+RUN wget https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$SONAR_SCANNER_MSBUILD_VERSION/sonar-scanner-msbuild-$SONAR_SCANNER_MSBUILD_VERSION-net46.zip -O /opt/sonar-scanner-msbuild.zip && \
+    mkdir -p $SONAR_SCANNER_MSBUILD_HOME && \
+    unzip /opt/sonar-scanner-msbuild.zip -d $SONAR_SCANNER_MSBUILD_HOME && \
+    rm /opt/sonar-scanner-msbuild.zip && \
+    chmod 775 $SONAR_SCANNER_MSBUILD_HOME/*.exe && \
+    chmod 775 $SONAR_SCANNER_MSBUILD_HOME/**/bin/* && \
+    chmod 775 $SONAR_SCANNER_MSBUILD_HOME/**/lib/*.jar
+
+# Fix permissions...
 RUN chown -R 1001:0 $HOME && \
     chmod -R g+rw $HOME
 
@@ -81,8 +105,8 @@ You can verify that an image stream is created in the _CI/CD Infra_ project for 
 ~~~shell
 $ oc get is
 NAME                                DOCKER REPO                                                                       TAGS      UPDATED
-jenkins-slave-base-centos7          docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}jenkins-slave-base-centos7          latest    2 hours ago
-jenkins-slave-dotnet-core-centos7   docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}/jenkins-slave-dotnet-core-centos7   latest    17 minutes ago
+jenkins-slave-base-centos7          docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}jenkins-slave-base-centos7          latest    2 hours ago
+jenkins-slave-dotnet-core-centos7   docker-registry.default.svc:5000/{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}/jenkins-slave-dotnet-core-centos7   latest    17 minutes ago
 ~~~
  
 The image is ready in the registry and all is left is to add metadata to the image stream so that Jenkins master can discover this new slave image by assigning the label `role=jenkins-slave` to the image and also optionally annotate it with `slave-label=dotnet` to specify the slave name which is by default the name of the image.
