@@ -288,20 +288,20 @@ Let's add a couple of packages to our API via NuGet to provide to our API with t
 
 > These packages are open source and the code can be found [here](https://github.com/prometheus-net/prometheus-net).
 
-~~~
+~~~shell
 dotnet add src/Coolstore.Inventory/Coolstore.Inventory.csproj package prometheus-net
 dotnet add src/Coolstore.Inventory/Coolstore.Inventory.csproj package prometheus-net.AspNetCore
 ~~~
 
 Now we have modify our `Startup.cs` to inject Prometheus support. Please open` ./src/Coolstore.Inventory/Startup.cs` and locate function `Configure()`. Add the following right after **app.UseHttpsRedirection();**
 
-~~~
+~~~shell
 // Prometheus support
 app.UseMetricServer();
 ~~~
 
 ...as in here
-
+	
 ~~~csharp
 public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 {
@@ -319,7 +319,7 @@ Don't forget import the Prometheus library `using Prometheus;`
 
 So far, we have added Prometheus support and if you execute the code again you should be able to invoke `/metrics` but we haven't added our own "business" metrics, so let's do it now.
 
-Go to ./src/Controllers/DefaultApi.cs and locate **public class DefaultApiController : ControllerBase**, we're going to add a private property of type Counter and a constructor to declare it.
+Go to **./src/Controllers/DefaultApi.cs** and locate **public class DefaultApiController : ControllerBase**, we're going to add a private property of type Counter and a constructor to declare it.
 
 Please modify your **DefaultApiController** as follows... As you can see we're defining three labes, namely:
 
@@ -426,7 +426,13 @@ Once you have tested some times both API endpoints please open another tab in yo
 
 > You can check that apart from our counter... there other useful metrics...
 
-~~~
+~~~shell
+# HELP dotnet_totalmemory Total known allocated memory
+# TYPE dotnet_totalmemory gauge
+dotnet_totalmemory 8026240
+# HELP dotnet_collection_errors_total Total number of errors that occured during collections
+# TYPE dotnet_collection_errors_total counter
+dotnet_collection_errors_total 0
 ...
 # HELP api_http_requests_total Counts get ...
 # TYPE api_http_requests_total counter
@@ -489,8 +495,8 @@ $ git remote add origin GIT-REPO-URL
 Before you commit the source code to the Git repository, configure your name and email so that the commit owner can be seen on the repository. If you want, you can replace the name and the email with your own in the following commands:
 
 ~~~shell
-git config --global user.name "developer"
-git config --global user.email "developer@me.com"
+git config --global user.name "userXX"
+git config --global user.email "userXX@ocp.com"
 ~~~
 
 Commit and push the existing code to the GitHub repository.
@@ -508,6 +514,15 @@ Enter your Git repository username and password if you get asked to enter your c
 #### Deploying our .Net Core API on OpenShift
 
 Deploying a .Net Core application on Openshift is no different than deploying a Java or NodeJS application using Openshift S2I (or Source to Image).
+
+> [Source-to-Image (S2I)](https://docs.openshift.com/container-platform/3.11/architecture/core_concepts/builds_and_image_streams.html#source-build) is a framework that makes it easy to write images that take application source code as an input and produce a new image that runs the assembled application as output.
+> The main advantage of using S2I for building reproducible container images is the ease of use for developers. As a builder image author, you must understand two basic concepts in order for your images to provide the best possible S2I performance: the build process and S2I scripts.
+
+But before we deploy our code we must first create a project in Openshift, so please open your favorite browser and open the Openshift web console. Click on `Create Project` as in the following picture.
+
+> **NOTE:** In order to shorten the time needed for this lab, this step may have been taken care for you (please check if you alredy have a project named {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} and another one {{COOLSTORE_PROJECT}}-dev{{PROJECT_SUFFIX}}). However if you want to create a different project be sure to tell your instructor because the lab and Prometheus itself is expecting a specific project name.
+
+![Inventory Repository]({% image_path dotnet-create-project.png %}){:width="900px"}
 
 In order to deploy our API using the web console, open your `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` and click on `Catalog` (bottom-left corner). Now choose `.Net Core`.
 
@@ -528,7 +543,7 @@ Once in the advanced options screen, you'll see that both `Name` and `Git Reposi
 In this area we're going to add an environment variable which holds the path to the C# project. This variable will be used while building the application artifacts and the image to run the code, not at run time.
 
 * **Environment Variable:** DOTNET_STARTUP_PROJECT
-* **Value:** src/Org.OpenAPITools/Org.OpenAPITools.csproj
+* **Value:** src/Coolstore.Inventory/Coolstore.Inventory.csproj
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-05.png %}){:width="740px"}
 
@@ -553,5 +568,7 @@ Once the pod is ready, it's color changes to bright blue. Now you can click on t
 As we have done before, you can use the API tests page.
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-10.png %}){:width="740px"}
+
+#### Activating monitoring for our application
 
 Well done! You are ready to move on to the next lab.
