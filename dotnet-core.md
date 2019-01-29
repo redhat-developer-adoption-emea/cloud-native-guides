@@ -46,7 +46,7 @@ Click on the menu as in the picture, then click on `Download (YAML)`
 
 In ordet to generate the C# (.Net Core) code (stub/façade) we're going to use the [**Open API Generator**](https://github.com/openapitools/openapi-generator). These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
 
-> **Note:** we're going to use a configuration file (`openapi-config.json`) in order to change the generated project/package name from a default name to Coolstore.Inventory
+> **Note:** we're going to use a configuration file (`openapi-config.json`) in order to change the generated project/package name from a default name to CoolstoreXX.Inventory
 
 With the next set of commands we're going to create a folder, change to it, create a config file (mentioned above), download Open API Generator CLI and use it to generate the .Net code from our API specification.
 
@@ -70,7 +70,7 @@ Next you'll create a `bin` folder, download the API Generator CLI...
 > bitsadmin /info myDownloadJob /verbose
 ~~~
 
-Wait until the download job has finished...
+Wait until the download job has finished... then run.
 
 ~~~shell
 > bitsadmin /complete myDownloadJob
@@ -81,7 +81,7 @@ Open an editor and copy/paste this content, then save it in `inventory-dotnet-co
 
 ~~~json
 {
-    "packageName" : "Coolstore.Inventory"
+    "packageName" : "CoolstoreXX.Inventory"
 }
 ~~~
 
@@ -107,7 +107,7 @@ Next you'll create a `bin` folder, download the API Generator CLI...
 $ cd inventory-dotnet-core-lab
 $ cat << EOF > openapi-config.json
 {
-    "packageName" : "Coolstore.Inventory"
+    "packageName" : "CoolstoreXX.Inventory"
 }
 EOF
 $ mkdir ./bin
@@ -134,18 +134,18 @@ dotnet restore
 You should see something like this...
 
 ~~~shell
-Restoring packages for .../src/Coolstore.Inventory/Coolstore.Inventory.csproj...
-  Restore completed in 82.5 ms for .../src/Coolstore.Inventory/Coolstore.Inventory.csproj.
-  Generating MSBuild file .../src/Coolstore.Inventory/obj/Coolstore.Inventory.csproj.nuget.g.props.
-  Generating MSBuild file .../src/Coolstore.Inventory/obj/Coolstore.Inventory.csproj.nuget.g.targets.
-  Restore completed in 1.5 sec for .../src/Coolstore.Inventory/Coolstore.Inventory.csproj.
+Restoring packages for .../src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj...
+  Restore completed in 82.5 ms for .../src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj.
+  Generating MSBuild file .../src/CoolstoreXX.Inventory/obj/CoolstoreXX.Inventory.csproj.nuget.g.props.
+  Generating MSBuild file .../src/CoolstoreXX.Inventory/obj/CoolstoreXX.Inventory.csproj.nuget.g.targets.
+  Restore completed in 1.5 sec for .../src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj.
 ~~~
 
 #### [Temporary] Fixing the error in DefaultApi.cs
 
 [Open API Generator](https://github.com/openapitools/openapi-generator) generates a proper C# API server stub but introduces a couple of errors when copying the reponse examples provided within the specification.
 
-These two errors are in `src/Coolstore.Inventory/Controllers/DefaultApi.cs` please follow the instructions below to fix them.
+These two errors are in `src/CoolstoreXX.Inventory/Controllers/DefaultApi.cs` please follow the instructions below to fix them.
 
 > Please change to folder OUTPUT_DIR, if you haven't already, and open Visual Studio Code there.
 
@@ -236,7 +236,7 @@ It should be:
 exampleJson = "{\"itemId\":\"329299\",\"quantity\":35}";
 ~~~
 
-> If you're curious the original JSON version of our specification is here `src/Coolstore.Inventory/wwwroot/openapi-original.json`
+> If you're curious the original JSON version of our specification is here `src/CoolstoreXX.Inventory/wwwroot/openapi-original.json`
 
 #### Testing the API
 
@@ -245,14 +245,14 @@ In order to test the API locally, you need to be in the folder where we have run
 > Pay attention to the `-p` flag, as you can see it points to the project file inside **OUTPUT_DIR**. This environment variable was populated before with `inventory-gen`
 
 ~~~shell
-dotnet run -p ./src/Coolstore.Inventory/Coolstore.Inventory.csproj
+dotnet run -p ./src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj
 ~~~
 
 You should see something like...
 
 ~~~shell
 Hosting environment: Development
-Content root path: .../inventory-dotnet-core-lab/inventory-gen/src/Coolstore.Inventory
+Content root path: .../inventory-dotnet-core-lab/inventory-gen/src/CoolstoreXX.Inventory
 Now listening on: http://0.0.0.0:8080
 Application started. Press Ctrl+C to shut down.
 ~~~
@@ -289,11 +289,11 @@ Let's add a couple of packages to our API via NuGet to provide to our API with t
 > These packages are open source and the code can be found [here](https://github.com/prometheus-net/prometheus-net).
 
 ~~~shell
-dotnet add src/Coolstore.Inventory/Coolstore.Inventory.csproj package prometheus-net
-dotnet add src/Coolstore.Inventory/Coolstore.Inventory.csproj package prometheus-net.AspNetCore
+dotnet add src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj package prometheus-net
+dotnet add src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj package prometheus-net.AspNetCore
 ~~~
 
-Now we have modify our `Startup.cs` to inject Prometheus support. Please open` ./src/Coolstore.Inventory/Startup.cs` and locate function `Configure()`. Add the following right after **app.UseHttpsRedirection();**
+Now we have modify our `Startup.cs` to inject Prometheus support. Please open` ./src/CoolstoreXX.Inventory/Startup.cs` and locate function `Configure()`. Add the following right after **app.UseHttpsRedirection();**
 
 ~~~shell
 // Prometheus support
@@ -417,7 +417,7 @@ public virtual IActionResult ApiInventoryItemIdGet([FromRoute][Required]string i
 Finally, let's run our code again.
 
 ~~~shell
-dotnet run -p ./src/Coolstore.Inventory/Coolstore.Inventory.csproj
+dotnet run -p ./src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj
 ~~~
 
 Open a browser and test the APIs as we did before.
@@ -445,10 +445,11 @@ So far so good, now we have to create a git repo and push our code to it.
 
 #### Creating a git repo for the generated code
 
-You can use any Git server (e.g. GitHub, BitBucket, etc) for this lab but we have prepared a 
-Gogs git server which you can access here: 
+You can use any Git server (e.g. GitHub, BitBucket, etc) for this lab but we have prepared a Gogs git server which you can access here: 
 
 {{ GIT_URL }}
+
+> **TIP:** Or you could just use a repo prepared with a ready to use copy of the code you've previously generated. This repo is [here]({{ GIT_URL }}/user99/inventory-dotnet-core.git)
 
 Click on **Register** to register a new user with the following details and then click on 
 **Create New Account**: 
@@ -479,6 +480,8 @@ Click on the copy-to-clipboard icon to near the *HTTP Git url* to copy it to the
 #### Push Inventory Code to the Git Repository
 
 Now that you have a Git repository for the Inventory service, you should push the source code into this Git repository.
+
+> **NOTE:** If you skipped the previous chapter you should skip this one too...
 
 Go the `inventory-dotnet-core` folder, initialize it as a Git working copy and add the GitHub repository as the remote repository for your working copy. 
 
@@ -520,11 +523,11 @@ Deploying a .Net Core application on Openshift is no different than deploying a 
 
 But before we deploy our code we must first create a project in Openshift, so please open your favorite browser and open the Openshift web console. Click on `Create Project` as in the following picture.
 
-> **NOTE:** In order to shorten the time needed for this lab, this step may have been taken care for you (please check if you alredy have a project named {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} and another one {{COOLSTORE_PROJECT}}-dev{{PROJECT_SUFFIX}}). However if you want to create a different project be sure to tell your instructor because the lab and Prometheus itself is expecting a specific project name.
+> **NOTE:** In order to shorten the time needed for this lab, this step may have been taken care for you (please check if you alredy have a project named {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} and another one {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev). However if you want to create a different project be sure to tell your instructor because the lab and Prometheus itself is expecting a specific project name.
 
 ![Inventory Repository]({% image_path dotnet-create-project.png %}){:width="900px"}
 
-In order to deploy our API using the web console, open your `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` and click on `Catalog` (bottom-left corner). Now choose `.Net Core`.
+In order to deploy our API using the web console, open project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` and click on `Catalog` (bottom-left corner). Now choose `.Net Core`.
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-01.png %}){:width="740px"}
 
@@ -533,6 +536,8 @@ Click on `Next`.
 ![Deploying on OCP]({% image_path dotnet-deploy-api-02.png %}){:width="600px"}
 
 Name your application as `inventory-dotnet-core` and copy the GIT-REPO-URL, then click on `advanced options`.
+
+>  If you skipped creating your own repo you should use the one we have provided [here]({{ GIT_URL }}/user99/inventory-dotnet-core.git) otherwise your repo should look like this one: {{ GIT_URL }}/userXX/inventory-dotnet-core.git
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-03.png %}){:width="600px"}
 
@@ -543,7 +548,7 @@ Once in the advanced options screen, you'll see that both `Name` and `Git Reposi
 In this area we're going to add an environment variable which holds the path to the C# project. This variable will be used while building the application artifacts and the image to run the code, not at run time.
 
 * **Environment Variable:** DOTNET_STARTUP_PROJECT
-* **Value:** src/Coolstore.Inventory/Coolstore.Inventory.csproj
+* **Value:** src/CoolstoreXX.Inventory/CoolstoreXX.Inventory.csproj
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-05.png %}){:width="740px"}
 
@@ -569,6 +574,60 @@ As we have done before, you can use the API tests page.
 
 ![Deploying on OCP]({% image_path dotnet-deploy-api-10.png %}){:width="740px"}
 
+Please do also test `/metrics` so that you're sure monitoring is in place.
+
 #### Activating monitoring for our application
+
+Hopefully your code is up and running and monitoring is, well, monitoring :-)
+
+But... there're a couple of steps needed to make Prometheus aware of your application `/metrics` endpoint.
+
+First you have to modify the DeploymentConfig you just created.
+
+![Adapting DeploymentConfig]({% image_path dotnet-prometheus-annotations-deployment-yaml-01.png %}){:width="740px"}
+
+![Adapting DeploymentConfig]({% image_path dotnet-prometheus-annotations-deployment-yaml-02.png %}){:width="740px"}
+
+![Adapting DeploymentConfig]({% image_path dotnet-prometheus-annotations-deployment-yaml-03.png %}){:width="740px"}
+
+Add the following `prometheus.io` annotations. **Please pay attention** to the location of these annotations: **spec/template/metadata/annotations**
+
+~~~yaml
+...
+spec:
+  template:
+    metadata:
+      annotations:
+        ...
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+...
+~~~
+
+Now let's do something similar in the Service definition.
+
+![Adapting Service]({% image_path dotnet-prometheus-annotations-service-yaml-01.png %}){:width="740px"}
+
+![Adapting Service]({% image_path dotnet-prometheus-annotations-service-yaml-02.png %}){:width="740px"}
+
+![Adapting Service]({% image_path dotnet-prometheus-annotations-service-yaml-03.png %}){:width="740px"}
+
+Add the following `prometheus.io` annotations. **Please pay attention** now the location is: **metadata/annotations**
+
+~~~yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    ...
+    prometheus.io/scrape: "true"
+    prometheus.io/scheme: http
+    prometheus.io/port: "8080"
+...
+~~~
+
+Ask your instructor to have a look to [this](https://prometheus-application-monitoring.13.95.86.47.nip.io/targets) url and check if you find your application!
+**https://prometheus-application-monitoring.13.95.86.47.nip.io/targets**
 
 Well done! You are ready to move on to the next lab.
