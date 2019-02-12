@@ -6,7 +6,7 @@ This is lab will guide you to create an instance of Prometheus by using the [Pro
 
 #### What is the Prometheus Operator?
 
-Operators were introduced by CoreOS as a class of software that operates other software, putting operational knowledge collected by humans into software. For further information around Operator please go [here](https://github.com/operator-framework/getting-started).
+Operators were introduced by CoreOS as a class of software that operates other software, putting operational knowledge collected by humans into software. For further information around the Operator Framework please go [here](https://github.com/operator-framework/getting-started).
 
 The Prometheus Operator serves to make running Prometheus on top of Kubernetes as easy as possible, while preserving Kubernetes-native configuration options.
 
@@ -16,11 +16,11 @@ The Operator Framework (currently in Technology Preview phase) installs the Oper
 
 The OpenShift Container Platform web console has been is also updated for cluster administrators to install Operators, as well as grant specific projects access to use the catalog of Operators available on the cluster.
 
-One of the Red Hat Supported Operator is the one we need, this means we don't need to install the operator, we just need to use it. As any other operator there are a set of objects (CRDs) we need to create to tell the operator how we want to install and operate.
+One of the Red Hat Supported Operators is the one we need for this lab, this means you don't need to install the operator itself but to use it. As any other operator there are a set of objects (CRDs) we need to create to tell the operator how we want to install and operate Prometheus.
 
 These are the objects we'll need to create:
 
-* Prometheus: defines number 
+* Prometheus 
 * ServiceMonitor
 * AlertManager
 
@@ -32,7 +32,7 @@ The next image shows how they're related. For further details please go [here](h
 
 In order to follow this lab you'll need:
 
-* A u ser whi has been granted the `cluster-admin` role
+* A u ser who has been granted the `cluster-admin` role
 * Create a project to install Prometheus
 
 The next command lines show how to grant a user the `cluster-admin` role and create a project.
@@ -50,7 +50,7 @@ The aim of this lab is to deploy the following architecture.
 > * Additionally we'll define a **ServiceMonitor** containg the required label `k8s-app` which in its turn we'll trigger the scanning of Services according to the rule defined in the `selector` section (matches label **team** with value **backend**). 
 > * Finally **port** property in section `endpoints` of our **ServiceMonitor** should match the **port** name defined in our target **Service** objects.
 
-![Prometheus Operator Deployment 1]({% image_path prometheus-operator-architecture-lab.png %}){:width="740px"}
+![Prometheus Operator End Result]({% image_path prometheus-operator-architecture-lab.png %}){:width="740px"}
 
 #### Create a Prometheus subscription
 
@@ -109,10 +109,10 @@ Go back to the `Cluster Console` and click on the `Create New` button and choose
 
 ![Prometheus Operator Deployment 9]({% image_path prometheus-operator-deploy-9.png %}){:width="740px"}
 
-Next screen shows an example descriptor of a Prometheus server, go aheade and change `metadata-->name` to server as in the image and click `Create`.
+Next screen shows an example descriptor of a Prometheus server, go aheade and change `metadata-➡name` to server as in the image and click `Create`.
 
-> Pay attention to section `spec->serviceMonitorSelector`. There is where we define the match expression to select which Service Monitors we're interested in. In this case we want Service Monitors with a label called `key`
-> Also pay attention to `spec->replicas`, if you go to the OpenShift Application Console you'll find a StatefulSet called prometheus**-server** with exactly 2 replicas
+> Pay attention to section `spec➡serviceMonitorSelector`. There is where we define the match expression to select which Service Monitors we're interested in. In this case we want Service Monitors with a label called `key`
+> Also pay attention to `spec➡replicas`, if you go to the OpenShift Application Console you'll find a StatefulSet called prometheus**-server** with exactly 2 replicas
 
 ![Prometheus Operator Deployment 10]({% image_path prometheus-operator-deploy-10.png %}){:width="740px"}
 
@@ -192,7 +192,7 @@ example-app-94c8bc8-vfgr7   1/1       Running   0          30s
 
 Now let's create a Service object to balance to these pods.
 
-> Pay attention to `spec->port->name` as we explained before should match the value of `metadata->endpoints->port` in the ServiceMonitor
+> Pay attention to `spec➡port➡name` as we explained before should match the value of `metadata➡endpoints➡port` in the ServiceMonitor
 
 ~~~
 $ cat << EOF | oc create -n "monitored-apps" -f -
@@ -214,7 +214,7 @@ EOF
 
 #### Let's create a ServiceMonitor to scan our test Service
 
-Please go to the Cluster Console to the `Operators->Cluster Service Versions` area. And click on `Create New` and select Service Monitor.
+Please go to the Cluster Console to the `Operators➡Cluster Service Versions` area. And click on `Create New` and select Service Monitor.
 
 > **Remember** that project should be `monitoring`
 
@@ -308,7 +308,7 @@ $ oc expose svc/prometheus-operated -n monitoring
 route.route.openshift.io/prometheus-operated exposed
 ~~~
 
-Now please open the url returned by the next command and navigate to `Status->Targets`
+Now please open the url returned by the next command and navigate to `Status➡Targets`
 
 ~~~shell
 $ oc get route -n monitoring
@@ -320,7 +320,7 @@ You should see something like this. There are three targets, one per pod.
 
 ![Prometheus Targets]({% image_path prometheus-operator-targets-view.png %}){:width="740px"}
 
-Now if you navigate to `Status->Configuration` you should be able to see that there's a scrape_config entry per ServiceMonitor object, in our case we only have one, called `backnd-monitor`, the generated scrape-config name `monitoring/backend-monitor/0`
+Now if you navigate to `Status➡Configuration` you should be able to see that there's a scrape_config entry per ServiceMonitor object, in our case we only have one, called `backnd-monitor`, the generated scrape-config name `monitoring/backend-monitor/0`
 
 ![Prometheus Targets]({% image_path prometheus-operator-configuration-view.png %}){:width="740px"}
 
