@@ -52,3 +52,5 @@ modules:
     name:  Node + Karma Complex Pipeline
   env-info:
     name: "Appendix: Lab Env Info"
+  prometheus-operator:
+    name: "Using the Prometheus Operator"
