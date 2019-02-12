@@ -43,7 +43,7 @@ $ export GIT_REF="{{GITHUB_REF}}"
 **REMEMBER:**
 
 > * **`coolstore`** should be **`coolstore-XX`**
-> * **`coolstore-dev`** should be **`coolstore-dev-XX`**
+> * **`coolstore-dev`** should be **`coolstore-XX-dev`**
 
 ~~~shell
 $ cat << EOF | oc create -n "coolstore-${MY_USER_NUMBER}" -f -
@@ -61,7 +61,7 @@ spec:
         def APP_VERSION = "0.0.1-SNAPSHOT"
 
         def PROJECT_NAME = "coolstore-${MY_USER_NUMBER}"
-        def DEV_PROJECT_NAME = "coolstore-dev-${MY_USER_NUMBER}"
+        def DEV_PROJECT_NAME = "coolstore-${MY_USER_NUMBER}-dev"
 
         def GIT_URL = "${GIT_URL}"
         def GIT_REF = "${GIT_REF}"
