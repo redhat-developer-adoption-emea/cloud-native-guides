@@ -28,14 +28,14 @@ The next image shows how they're related. For further details please go [here](h
 
 ![Prometheus Operator Architecture]({% image_path prometheus-operator-architecture.png %}){:width="740px"}
 
-#### Preprequisites
+#### Prerequisites
 
 In order to follow this lab you'll need:
 
-* A u ser who has been granted the `cluster-admin` role
-* Create a project to install Prometheus
+* Have an OpenShift cluster to play with
+* A user who has been granted the `cluster-admin` role
 
-The next command lines show how to grant a user the `cluster-admin` role and create a project.
+The next command lines show how to grant a user the `cluster-admin` role and create a project where we'll install Prometheus.
 
 ~~~shell
 oc adm policy add-cluster-role-to-user cluster-admin <user_name>
@@ -46,11 +46,11 @@ oc new-project monitoring
 
 The aim of this lab is to deploy the following architecture. 
 
-> * As you can see we need to define a **Prometheus** server 'linked' to a set of **ServiceMonitors**  through a `serviceMonitorSelector` rule, in this case we're interested on ServiceMonitors containing label `k8s-app` no matter which value it contains.
-> * Additionally we'll define a **ServiceMonitor** containg the required label `k8s-app` which in its turn we'll trigger the scanning of Services according to the rule defined in the `selector` section (matches label **team** with value **backend**). 
-> * Finally **port** property in section `endpoints` of our **ServiceMonitor** should match the **port** name defined in our target **Service** objects.
-
 ![Prometheus Operator End Result]({% image_path prometheus-operator-architecture-lab.png %}){:width="740px"}
+
+* As you can see we need to define a **Prometheus** server 'linked' to a set of **ServiceMonitors**  through a `serviceMonitorSelector` rule, in this case we're interested on ServiceMonitors containing label `k8s-app` no matter which value it contains.
+* Additionally we'll define a **ServiceMonitor** containg the required label `k8s-app` which in its turn we'll trigger the scanning of Services according to the rule defined in the `selector` section (matches label **team** with value **backend**). 
+* Finally **port** property in section `endpoints` of our **ServiceMonitor** should match the **port** name defined in our target **Service** objects.
 
 #### Create a Prometheus subscription
 
@@ -97,7 +97,7 @@ You should be able to see the description and links to documentation of the Prom
 
 ![Prometheus Operator Deployment 7]({% image_path prometheus-operator-deploy-7.png %}){:width="740px"}
 
-Good job, you have deployed the operator in project `monitoring`, in fact if you go to the OpenShift console to project `monitor` you should see one instance of the prometeus-operator as in the next picture.
+Good job, you have deployed the operator in project `monitoring`, in fact if you go to the OpenShift Application Console to project `monitor` you should see one instance of the prometeus-operator as in the next picture.
 
 ![Prometheus Operator Deployment 8]({% image_path prometheus-operator-deploy-8.png %}){:width="740px"}
 
@@ -156,7 +156,7 @@ Let's create a project for our application.
 oc new-project monitored-apps
 ~~~
 
-Let's deploy the test aplication.
+Let's deploy the test application.
 
 ~~~shell
 $ cat << EOF | oc create -n "monitored-apps" -f -
@@ -284,7 +284,7 @@ Well... something is not ok... apparently the problem has to do with permissions
 
 So what we have to do is grant those required permissions (`view`) to the Service Account created by the operator and used by Prometheus.
 
-We could grant a cluter-role to the service account, this way it can monitor any namespace, as in the next command.
+We could grant a cluster-role to the service account, this way it can monitor any namespace, as in the next command.
 
 ~~~shell
 oc adm policy add-cluster-role-to-user view system:serviceaccount:monitoring:prometheus-k8s
@@ -333,5 +333,9 @@ Now that we're sure that our target service is being monitored we could go and s
 ...and click on tab `Graph`.
 
 ![Prometheus Graph]({% image_path prometheus-operator-graph-view-2.png %}){:width="740px"}
+
+#### Wrap up
+
+Congratulations, you've deployed Prometheus using the Operator Lifecycle Manager, deployed a service in a different namespace, tracked down a configuration error, fixed it and finally checked everything works… hopefully ;-)
 
 Well done! You are ready to move on to the next lab.
