@@ -138,7 +138,8 @@
 
   # install apicurio studio standalone
   - name: install apicurio studio standalone
-    shell: "oc process -n {{ namespace }} -f https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/apicurio-standalone-template.yml -p UI_ROUTE=apicurio-studio-{{ namespace }}.{{ apps_hostname_suffix }} -p API_ROUTE=apicurio-studio-api-{{ namespace }}.{{ apps_hostname_suffix }} -p WS_ROUTE=apicurio-studio-ws-{{ namespace }}.{{ apps_hostname_suffix }} -p AUTH_ROUTE=apicurio-studio-auth-{{ namespace }}.{{ apps_hostname_suffix }} | oc create -n {{ namespace }} -f -"
+    shell: "oc process -f https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/apicurio-standalone-template.yml -p UI_ROUTE=apicurio-studio-{{ namespace }}.{{ apps_hostname_suffix }} -p API_ROUTE=apicurio-studio-api-{{ namespace }}.{{ apps_hostname_suffix }} -p WS_ROUTE=apicurio-studio-ws-{{ namespace }}.{{ apps_hostname_suffix }} -p AUTH_ROUTE=apicurio-studio-auth-{{ namespace }}.{{ apps_hostname_suffix }} | oc create -n {{ namespace }} -f - "
+    register: apicurio_result
     tags: apicurio
 
   # update jenkins templates
