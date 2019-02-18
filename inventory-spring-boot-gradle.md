@@ -42,6 +42,11 @@ Click on the menu as in the picture, then click on `Download (YAML)`
 
 #### Generating the code
 
+There are several ways to generate Spring Boot code and use Gradle, one way would be to use OpenAPI Generator CLI to generate a Maven project to later move it to Gradle, another way would be to use the OpenAPI Generator plugin for Gradle.
+
+We're going to use the latter approach, but in order to use the mentioned Gradle plugin we need a seed (minimum) Gradle project.
+
+
 
 
 So far so good, now we have to create a git repo and push our code to it.
