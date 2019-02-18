@@ -12,6 +12,8 @@ modules:
     name: Microservices with Spring Boot
   inventory-api:
     name: Designing the Inventory API with Open API
+  inventory-spring-boot-gradle:
+    name: Alternative Inventory with Spring Boot + Gradle
   dotnet-core:
     name: Alternative Inventory with .Net Core
   dotnet-core-custom-slave:

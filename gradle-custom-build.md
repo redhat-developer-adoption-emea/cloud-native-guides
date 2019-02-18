@@ -22,7 +22,7 @@ Using project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} on server "https://192.168
 Let's create a BuildConfig with a custom [S2I image](https://github.com/jorgemoralespou/s2i-java) by Jorge Morales.
 
 ~~~shell
-$ oc new-build jorgemoralespou/s2i-java~https://github.com/redhat-developer-adoption-emea/cloud-native-labs#ocp-3.10 \
+$ oc new-build jorgemoralespou/s2i-java~https://github.com/redhat-developer-adoption-emea/cloud-native-labs#{{ GIT_REF }} \
    --context-dir=/inventory-spring-boot-gradle --name=gradle-builder
 ~~~
 
