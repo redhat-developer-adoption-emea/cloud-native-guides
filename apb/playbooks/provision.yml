@@ -62,11 +62,22 @@
     tags: always
 
   # install apicurio studio standalone
+  - name: create apicurio project
+    shell: "oc new-project apicurio"
+    register: apicurio_project_result
+    tags: apicurio
+
+  - name: delete apicurio project quota
+    shell: "oc delete limitrange --all -n apicurio}"
+    ignore_errors: true
+    tags: always
+
   - name: install apicurio studio standalone
-    shell: "oc process -f https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/apicurio-standalone-template.yml -p UI_ROUTE=apicurio-studio-{{ namespace }}.{{ apps_hostname_suffix }} -p API_ROUTE=apicurio-studio-api-{{ namespace }}.{{ apps_hostname_suffix }} -p WS_ROUTE=apicurio-studio-ws-{{ namespace }}.{{ apps_hostname_suffix }} -p AUTH_ROUTE=apicurio-studio-auth-{{ namespace }}.{{ apps_hostname_suffix }} | oc create -n {{ namespace }} -f - "
+    shell: "oc process -f https://raw.githubusercontent.com/Apicurio/apicurio-studio/master/distro/openshift/apicurio-standalone-template.yml -p UI_ROUTE=apicurio-studio-{{ namespace }}.{{ apps_hostname_suffix }} -p API_ROUTE=apicurio-studio-api-{{ namespace }}.{{ apps_hostname_suffix }} -p WS_ROUTE=apicurio-studio-ws-{{ namespace }}.{{ apps_hostname_suffix }} -p AUTH_ROUTE=apicurio-studio-auth-{{ namespace }}.{{ apps_hostname_suffix }} | oc create -n apicurio -f - "
     register: apicurio_result
     tags: apicurio
-    
+
+  # Deploy nexus
   - import_role:
       name: openshift_sonatype_nexus
     vars:
@@ -75,6 +86,7 @@
       nexus_max_memory: 6Gi
     tags: nexus
 
+  # Deploy sonarqube
   - import_role:
       name: ansible_openshift_sonarqube
     vars:
