@@ -1,6 +1,6 @@
 version: 1.0
 name: cloudnative-workshop-apb
-description: APB to deploy required infra components (Sonarqube included) for the Cloud-Native Workshop on an OpenShift cluster
+description: APB to deploy required infra components (Sonarqube included) for the Cloud-Native Workshop on an OpenShift cluster [v1.0]
 bindable: False
 async: optional
 tags:
