@@ -36,6 +36,7 @@ modules:
   - spring-boot
   - inventory-api
   - inventory-spring-boot-gradle
+  - inventory-spring-boot-gradle-metrics
   - dotnet-core
   - dotnet-core-custom-slave
   - dotnet-core-complex-pipeline
