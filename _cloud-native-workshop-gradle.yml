@@ -37,7 +37,7 @@ modules:
   - inventory-api
   - inventory-spring-boot-gradle
   - inventory-spring-boot-gradle-metrics
-  - dotnet-core
+  - inventory-spring-boot-gradle-cicd
   - dotnet-core-custom-slave
   - dotnet-core-complex-pipeline
   - vertx
