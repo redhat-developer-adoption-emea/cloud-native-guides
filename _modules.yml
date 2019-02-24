@@ -18,6 +18,10 @@ modules:
     name: Adding metrics to Spring Boot + Gradle with Prometheus
   inventory-spring-boot-gradle-cicd:
     name: Continuous Delivery with Spring Boot + Gradle
+  inventory-spring-boot-gradle-implementation:
+    name: Adding actual code to our Spring Boot + Gradle Inventory
+  inventory-spring-boot-gradle-config:
+    name: Externalizing Configuration to our Spring Boot + Gradle Inventory
   dotnet-core:
     name: Alternative Inventory with .Net Core
   dotnet-core-custom-slave:

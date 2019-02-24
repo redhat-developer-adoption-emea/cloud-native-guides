@@ -38,8 +38,8 @@ modules:
   - inventory-spring-boot-gradle
   - inventory-spring-boot-gradle-metrics
   - inventory-spring-boot-gradle-cicd
-  - dotnet-core-custom-slave
-  - dotnet-core-complex-pipeline
+  - inventory-spring-boot-gradle-implementation
+  - inventory-spring-boot-gradle-config
   - vertx
   - nodejs
   - health

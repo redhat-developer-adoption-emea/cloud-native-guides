@@ -181,6 +181,14 @@ $ git commit -a -m "Prometheus metrics on"
 $ git push origin master
 ~~~
 
+> Before we rebuild our image we're going to add a label to the Service that loadbalances to the pods where our image actually runs as containers. This label is needed for Prometheus to find and scrape (collect) the metrics we have exposed with our changes in code and configuration.
+>
+> **Please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
+
+~~~shell
+$  oc label svc inventory-s2i team=spring-boot-actuator
+~~~ 
+
 Finally let's rebuild the image (start a new build) which leads to the deployment of our new code.
 
 > **Please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
@@ -202,6 +210,28 @@ $ oc get route | grep inventory-s2i
 inventory-s2i   inventory-s2i-coolstore-XX.apps.serverless-d50b.openshiftworkshop.com             inventory-s2i   8080-tcp                 None
 ~~~
 
-You can make some requests to the inventory API and see how our Prometheus metrics look...
+You can make some requests to the inventory API and see how our Prometheus metrics look.
+
+#### Seeing it at work
+
+Ask your instructor for the URL where you can reach the instance of Prometheus we have prepared for you.
+
+Once you have it, open a browser and point to it.
+
+![Prometheus]({% image_path inventory-spring-boot-gradle-prometheus-1.png %}){:width="740px"}
+
+Start typing `api_` in the text field where an autosuggest feature will help us finding a given metric. In this case we're interested in metric `api_http_requests_total`, so please select it as in the next picture.
+
+![Prometheus]({% image_path inventory-spring-boot-gradle-prometheus-2.png %}){:width="740px"}
+
+Now click on the `Execute` button and see some collected values and their dimensions:  **'api'**, **'method'** and **'endpoint'** (renamed as **'exported_endpoint'**), and some others automatically added, **'namespace'**, ...
+
+> **Remember** to execute the Inventory API some times otherwise you want see any values.
+
+![Prometheus]({% image_path inventory-spring-boot-gradle-prometheus-3.png %}){:width="740px"}
+
+Finally click on `Graph` and you'll see a chart with all the data series.
+
+![Prometheus]({% image_path inventory-spring-boot-gradle-prometheus-4.png %}){:width="740px"}
 
 Well done! You are ready to move on to the next lab.
