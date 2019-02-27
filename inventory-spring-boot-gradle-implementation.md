@@ -159,9 +159,11 @@ public class InventoryItemImpl implements Serializable {
 
 Now let's update the Controller (class that implemets the Inventory API) so that it uses our brand new implementation.
 
-> As you can see there are a couple of dependencies injected: **inventoryRepository**, **inventoryApiImpl**
+> As you can see there are a couple of dependencies injected with `@AutoWired`: **inventoryRepository**, **inventoryApiImpl**.
 > 
 > We have also overriden **inventoryItemIdGet** and **inventoryGet** with the new implementations. As you can check we also need a mapper between the API version of the InventoryItem and the version we use to persist to the Data Base. We'll create this class later.
+> 
+> You'll find that we have added the lines of code that increment the hit counter both in methods **inventoryItemIdGet** and **inventoryGet**. 
 
 ~~~java
 package com.redhat.cloudnative.inventory.api;
@@ -258,6 +260,40 @@ public class DataMapper {
                    .collect(Collectors.toList());
     }
 }
+~~~
+
+Now you may want to delete the monitoring related lines of code in `InventoryApi.java`. Comment or simply delete the lines starting with `Metrics.counter("api.http.requests.total", ...`
+
+~~~java
+...
+default ResponseEntity<List<InventoryItem>> inventoryGet() {
+        // Metrics.counter("api.http.requests.total", "api", "inventory", "method", "GET", "endpoint", "/inventory").increment();
+        getRequest().ifPresent(request -> {
+            for (MediaType mediaType: MediaType.parseMediaTypes(request.getHeader("Accept"))) {
+                if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
+                    ApiUtil.setExampleResponse(request, "application/json", "{  \"itemId\" : \"329299\",  \"quantity\" : 35}");
+                    break;
+                }
+            }
+        });
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+
+    }
+... 
+default ResponseEntity<InventoryItem> inventoryItemIdGet(@ApiParam(value = "",required=true) @PathVariable("itemId") String itemId) {
+        // Metrics.counter("api.http.requests.total", "api", "inventory", "method", "GET", "endpoint", "/inventory/" + itemId).increment();
+        getRequest().ifPresent(request -> {
+            for (MediaType mediaType: MediaType.parseMediaTypes(request.getHeader("Accept"))) {
+                if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
+                    ApiUtil.setExampleResponse(request, "application/json", "{  \"itemId\" : \"329299\",  \"quantity\" : 35}");
+                    break;
+                }
+            }
+        });
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+
+    }
+...
 ~~~
 
 #### Adding sample data to the database

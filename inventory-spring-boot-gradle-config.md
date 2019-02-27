@@ -19,7 +19,7 @@ This allows developers to build the container image for their application only o
 
 #### Create PostgreSQL Databases for our Inventory Service
 
-So far, the Inventory service have been using an in-memory H2 database. Although H2 is a convenient database to run locally on your laptop, it's in no way appropriate for production or even integration tests. Since it's strongly recommended to use the same technology stack (operating system, JVM, middleware, database, etc) that is used in production across all environments, you should modify the Catalog service to use PostgreSQL instead of the H2 in-memory database.
+So far, the Inventory service have been using an in-memory H2 database. Although H2 is a convenient database to run locally on your laptop, it's in no way appropriate for production or even integration tests. Since it's strongly recommended to use the same technology stack (operating system, JVM, middleware, database, etc) that is used in production across all environments, you should modify the Inventory service to use PostgreSQL instead of the H2 in-memory database.
 
 Fortunately, OpenShfit supports stateful applications such as databases which require access to a persistent storage that survives the container itself. You can deploy databases on OpenShift and regardless of what happens to the container itself, the data is safe and can be used by the next database container.
 
@@ -29,7 +29,7 @@ Let's create a [PostgreSQL database]({{OPENSHIFT_DOCS_BASE}}/using_images/db_ima
 
 ~~~shell
 $ oc new-app postgresql-persistent \
-    --param=DATABASE_SERVICE_NAME=catalog-postgresql \
+    --param=DATABASE_SERVICE_NAME=inventory-postgresql \
     --param=POSTGRESQL_DATABASE=inventory \
     --param=POSTGRESQL_USER=inventory \
     --param=POSTGRESQL_PASSWORD=inventory \
@@ -44,7 +44,7 @@ Now you can move on to configure the Inventory service to use these PostgreSQL d
 
 Spring Boot application configuration is provided via a properties file called `application.properties` and can be [overriden and overlayed via multiple mechanisms](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html). 
 
-> Check out the default Spring Boot configuration in the Inventory project `catalog-spring-boot/src/main/resources/application.properties`.
+> Check out the default Spring Boot configuration in the Inventory project `inventory-spring-boot-gradle/src/main/resources/application.properties`.
 
 In this lab, you will configure the Inventory service which is based on Spring Boot to override the default configuration using an alternative `application.properties` backed by a config map.
 
