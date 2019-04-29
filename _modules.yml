@@ -15,13 +15,23 @@ modules:
   inventory-spring-boot-gradle:
     name: Alternative Inventory with Spring Boot + Gradle
   inventory-spring-boot-gradle-metrics:
-    name: Adding metrics to Spring Boot + Gradle with Prometheus
+    name: Adding Prometheus metrics to Inventory (Spring Boot/Gradle)
   inventory-spring-boot-gradle-cicd:
-    name: Continuous Delivery with Spring Boot + Gradle
+    name: Adding Continuous Delivery to Inventory (Spring Boot/Gradle)
   inventory-spring-boot-gradle-implementation:
-    name: Adding actual code to our Spring Boot + Gradle Inventory
+    name: Adding Spring Data to Inventory (Spring Boot/Gradle)
   inventory-spring-boot-gradle-config:
     name: Externalizing Configuration to our Spring Boot + Gradle Inventory
+  inventory-spring-boot-maven:
+    name: Alternative Inventory with Spring Boot + Maven
+  inventory-spring-boot-maven-metrics:
+    name: Adding Prometheus metrics to Inventory (Spring Boot/Maven)
+  inventory-spring-boot-maven-cicd:
+    name: Adding Continuous Delivery to Inventory (Spring Boot/Maven)
+  inventory-spring-boot-maven-implementation:
+    name: Adding Spring Data to Inventory (Spring Boot/Maven)
+  inventory-spring-boot-maven-implementation-mybatis:
+    name: Adding MyBatis to Inventory (Spring Boot/Maven)
   dotnet-core:
     name: Alternative Inventory with .Net Core
   dotnet-core-custom-slave:

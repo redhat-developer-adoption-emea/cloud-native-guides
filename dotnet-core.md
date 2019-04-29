@@ -44,7 +44,7 @@ Click on the menu as in the picture, then click on `Download (YAML)`
 
 #### Generating the code
 
-In ordet to generate the C# (.Net Core) code (stub/façade) we're going to use the [**Open API Generator**](https://github.com/openapitools/openapi-generator). These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
+In order to generate the C# (.Net Core) code (stub/façade) we're going to use the [**Open API Generator**](https://github.com/openapitools/openapi-generator). These tool parses the YAML file you've hopefully retrieve and generates an REST API following the speficication, including the example provided, if any, for the different response actions defined.
 
 > **Note:** we're going to use a configuration file (`openapi-config.json`) in order to change the generated project/package name from a default name to CoolstoreXX.Inventory
 

@@ -1,10 +1,10 @@
-## Alternative Inventory Service using Spring Boot + Gradle
+## Alternative Inventory Service using Spring Boot + Maven
 
-In this lab you will learn about **how you can build microservices using** **Spring Boot + Gradle** and **Red Hat Openshift**. During this lab, you will use [**Open API Generator**](https://github.com/openapitools/openapi-generator), a code generator that can generate API client libraries, server stubs, documentation and configuration automatically given an [**Open API**](https://www.openapis.org/) Spec.
+In this lab you will learn about **how you can build microservices using** **Spring Boot + Maven** and **Red Hat Openshift**. During this lab, you will use [**Open API Generator**](https://github.com/openapitools/openapi-generator), a code generator that can generate API client libraries, server stubs, documentation and configuration automatically given an [**Open API**](https://www.openapis.org/) Spec.
 
 You will use a previously created Open API specification or you'll be given one by the instructor.
 
-#### What is Gradle?
+#### What is Maven?
 
 From ???:
 
@@ -12,13 +12,14 @@ From ???:
 
 Red Hat Openshift ... supports a 
 
-You can find more information about .Net Core in RHEL [here](https://developers.redhat.com/products/dotnet/overview/)
 
 #### Preprequisites
 
 In order to follow this lab you'll need:
 
 * **Java 8**, for the Open API Generator. You can find it [here](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html)
+
+* **Maven**, ...
 
 #### Retrieving the API specification
 
@@ -42,155 +43,42 @@ Click on the menu as in the picture, then click on `Download (YAML)`
 
 #### Generating the code
 
-There are several ways to generate Spring Boot code and use Gradle, one way would be to use OpenAPI Generator CLI to generate a Maven project to later move it to Gradle, another way would be to use the OpenAPI Generator plugin for Gradle.
+We are going to use the OpenAPI Generator CLI to generate a Maven project.
 
-We're going to use the latter approach, but in order to use the mentioned Gradle plugin we need a seed (minimum) Gradle project.
-
-So, please go to [Spring Initializr](https://start.spring.io/) and generate a Spring Boot bootstrap project for Gradle, as in the next picture.
-
-> **Don't forget** to add the **Web** dependency
-
-![Deploying on OCP]({% image_path inventory-spring-boot-gradle-bootstrap.png %}){:width="740px"}
-
-Now, please create a folder where will unzip the contents of the bootstrap Gradle project.
+Now, please create a folder where will generate the code.
 
 ~~~shell
-$ mkdir inventory-spring-boot-gradle
-$ cd inventory-spring-boot-gradle
-$ unzip inventory.zip
+$ mkdir inventory-spring-boot-maven
+$ cd inventory-spring-boot-maven
 ~~~
 
-Let's test there are no errors.
+> Copy `Inventory API.yaml` (or the name you gave it when you download it) to folder `inventory-spring-boot-maven`.
 
 ~~~shell
-$ ./gradlew build
-
-BUILD SUCCESSFUL in 4s
-5 actionable tasks: 3 executed, 2 up-to-date
+$ cp ~/Downloads/Inventory\ API.yaml ./inventory.yaml
 ~~~
 
-The OpenAPI Generator plugin will need to reach our API specification, so let's copy it to the resources folder.
+Next you'll create a `bin` folder, download the API Generator CLI...
 
 ~~~shell
-$ cp ~/Downloads/Inventory\ API.yaml ./src/main/resources/inventory.yaml
+$ cat << EOF > openapi-config.json
+{
+    "basePackage" : "com.redhat.cloudnative.inventory",
+    "configPackage" : "com.redhat.cloudnative.inventory.config",
+    "invokerPackage" : "com.redhat.cloudnative.inventory.invoker",
+    "apiPackage" : "com.redhat.cloudnative.inventory.api",
+    "modelPackage" : "com.redhat.cloudnative.inventory.model",
+    "artifactId" : "inventory",
+    "artifactVersion" : "0.0.1-SNAPSHOT",
+    "serializableModel" : true
+}
+EOF
+$ mkdir ./bin
+$ curl -L -o ./bin/openapi-generator-cli.jar http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.3.4/openapi-generator-cli-3.3.4.jar
+$ export OUTPUT_DIR="inventory-gen"
 ~~~
 
-##### Adapting build.gradle to use the OpenAPI Generator
-
-Open the `build.gradle` with your favorite editor, it should look like this one.
-
-~~~java
-plugins {
-	id 'org.springframework.boot' version '2.1.3.RELEASE'
-	id 'java'
-}
-
-apply plugin: 'io.spring.dependency-management'
-
-group = 'com.redhat.cloudnative'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
-
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-~~~
-
-Now have a look to the updated version that included the needed references and update your `build.gradle` file accordingly.
-
-> **Pay attention to section OpenAPI (4)** where we set up the plugin to generate code in a certain way
-
-~~~java
-// >>> OpenAPI (1)
-buildscript {
-  repositories {
-    mavenLocal()
-    mavenCentral()
-  }
-  dependencies {
-    classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
-  }
-}
-// <<< OpenAPI (1)
-
-plugins {
-	id 'org.springframework.boot' version '2.1.3.RELEASE'
-	id 'java'
-}
-
-apply plugin: 'io.spring.dependency-management'
-
-// >>> OpenAPI (2)
-apply plugin: 'org.openapi.generator'
-// <<< OpenAPI (2) 
-
-group = 'com.redhat.cloudnative'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '1.8'
-
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	
-	// >>> OpenAPI (3)
-	// https://mvnrepository.com/artifact/io.swagger/swagger-core
-	compile group: 'io.swagger', name: 'swagger-core', version: '1.5.0'
-	// https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui
-	compile group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.8.0'
-	// https://mvnrepository.com/artifact/io.springfox/springfox-swagger2
-	compile group: 'io.springfox', name: 'springfox-swagger2', version: '2.8.0'
-	// <<< OpenAPI (3)
-}
-
-// >>> OpenAPI (4)
-openApiGenerate{
-	generatorName = "spring"
-	inputSpec = "$rootDir/src/main/resources/inventory.yaml".toString()
-	outputDir = "$rootDir".toString() 
-	apiPackage = "com.redhat.cloudnative.inventory.api"
-	invokerPackage = "com.redhat.cloudnative.inventory"
-	modelPackage = "com.redhat.cloudnative.inventory.model" 
-	modelFilesConstrainedTo = []
-	configOptions = [
-		dateLibrary: "java8"
-	]
-}
-// <<< OpenAPI (4)
-~~~
-
-All this references are for generating and running the code, also by adding the OpenAPI Generator plugin a new set of tasks should be available, run the next command to see them.
-
-~~~shell
-$ ./gradlew tasks
-> Task :tasks
-
-------------------------------------------------------------
-All tasks runnable from root project
-------------------------------------------------------------
-
-Application tasks
------------------
-bootRun - Runs this project as a Spring Boot application.
-...
-OpenAPI Tools tasks
--------------------
-openApiGenerate - Generate code via Open API Tools Generator for Open API 2.0 or 3.x specification documents.
-openApiGenerators - Lists generators available via Open API Generators.
-openApiMeta - Generates a new generator to be consumed via Open API Generator.
-openApiValidate - Validates an Open API 2.0 or 3.x specification document.
-...
-~~~
-
-The whole purpose of this chapter is to generate code from the API specification we just designed. Well, in order to do that we have to run the `openApiGenerate` task. **But before we do we have to handle a mismatch between the specification generated by Apicurio and the specification expected by the OpenAPI Generator plugin**.
+The whole purpose of this chapter is to generate code from the API specification we just designed. **But before we do we have to handle a mismatch between the specification generated by Apicurio and the specification expected by the OpenAPI Generator plugin**.
 
 This mismatch has to do with the examples area in our YAML, in fact it has to do with the representation of those examples string vs object. Please open file `/src/main/resources/inventory.yaml` and apply the following changes.
 
@@ -375,27 +263,22 @@ components:
       example: {"code" : "404", "message" : "Item 53 was not found"}
 ~~~
 
-Now, once our YAML has been fixed, let's run the `openApiGenerate` task and see how it generates the code.
-
-> You'll see a couple of warnings we could have avoided by adding operationId to each operation, don't worry they're harmless
+Finally let's generate the code.
 
 ~~~shell
-$ ./gradlew openApiGenerate
-
-> Task :openApiGenerate
-Empty operationId found for path: get /inventory. Renamed to auto-generated operationId: inventoryGet
-Empty operationId found for path: get /inventory/{itemId}. Renamed to auto-generated operationId: inventoryItemIdGet
-Successfully generated code to .../inventory-spring-boot-gradle/inventory
-
-BUILD SUCCESSFUL in 1s
-1 actionable task: 1 executed
+$ java -jar ./bin/openapi-generator-cli.jar generate \
+  -i inventory.yaml \
+  -l spring \
+  -o $OUTPUT_DIR -c openapi-config.json
 ~~~
 
-So, where did the generated code go? Well, because we have configured task `openApiGenerate` as follows, code should be Spring, and located in packages (main class/interface highlighted):
+So, where did the generated code go? Well, because we have defined our own `openapi-config.json` file, code should be Spring, and located in packages as follows (main class/interface highlighted):
 
 * `com.redhat.cloudnative.inventory` → **OpenAPI2SpringBoot**
-*  `com.redhat.cloudnative.inventory.api` → **InventoryApi**
-*  `com.redhat.cloudnative.inventory.model` → **GenericError** and **InventoryItem**
+* `com.redhat.cloudnative.inventory.api` → **InventoryApi**
+* `com.redhat.cloudnative.inventory.model` → **GenericError** and **InventoryItem**
+* `com.redhat.cloudnative.inventory.config` → **HomeController** and **OpenAPIDocumentationConfig**
+
 
 Please, open java interface `com.redhat.cloudnative.inventory.api.`**InventoryApi** and have a look to method `inventoryGet()`.
 
@@ -412,65 +295,41 @@ Java code excerpt method `inventoryGet()`.
 ~~~java
 ...
 @ApiOperation(value = "Get all InventoryItems", nickname = "inventoryGet", notes = "Should return all elements as an array of InventoryItems or an empty array if there are none", response = InventoryItem.class, responseContainer = "List", tags={  })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Should return an arry of InventoryItems", response = InventoryItem.class, responseContainer = "List") })
-    @RequestMapping(value = "/inventory",
-        produces = { "application/json" }, 
-        method = RequestMethod.GET)
-    default ResponseEntity<List<InventoryItem>> inventoryGet() {
-        getRequest().ifPresent(request -> {
-            for (MediaType mediaType: MediaType.parseMediaTypes(request.getHeader("Accept"))) {
-                if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                    ApiUtil.setExampleResponse(request, "application/json", "{  \"itemId\" : \"329299\",  \"quantity\" : 35}");
-                    break;
-                }
+@ApiResponses(value = { 
+    @ApiResponse(code = 200, message = "Should return an arry of InventoryItems", response = InventoryItem.class, responseContainer = "List") })
+@RequestMapping(value = "/inventory",
+    produces = { "application/json" }, 
+    method = RequestMethod.GET)
+default ResponseEntity<List<InventoryItem>> inventoryGet() {
+    getRequest().ifPresent(request -> {
+        for (MediaType mediaType: MediaType.parseMediaTypes(request.getHeader("Accept"))) {
+            if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
+                ApiUtil.setExampleResponse(request, "application/json", "{  \"itemId\" : \"329299\",  \"quantity\" : 35}");
+                break;
             }
-        });
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        }
+    });
+    return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
 
-    }
+}
 ...
-~~~
-
-As you know, there's usually only one class annotated as `` but after generating the code we have two `InventoryApplication.java` and `OpenAPI2SpringBoot.java` both of them in path `./src/main/java/com/redhat/cloudnative/inventory`, to avoid running into issues, we're going to delete the class we no longer need.
-
-~~~shell
-$ rm ./src/main/java/com/redhat/cloudnative/inventory/InventoryApplication.java
 ~~~
 
 Now we can run our brand new API implementation, and see if it works.
 
 ~~~shell
-$ ./gradlew bootRun
-
-> Task :bootRun
-
+$ mvn spring-boot:run
+[INFO] Scanning for projects...
+...
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
 ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
   '  |____| .__|_| |_|_| |_\__, | / / / /
  =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::        (v2.1.3.RELEASE)
-
-2019-02-19 12:09:33.361  INFO 13358 --- [           main] c.r.c.inventory.InventoryApplication     : Starting InventoryApplication on cvicensa-mbp with PID 13358 (.../inventory-spring-boot-gradle/inventory/build/classes/java/main started by cvicensa in.../inventory-spring-boot-gradle/inventory)
-2019-02-19 12:09:33.363  INFO 13358 --- [           main] c.r.c.inventory.InventoryApplication     : No active profile set, falling back to default profiles: default
-2019-02-19 12:09:34.615  INFO 13358 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8080 (http)
-2019-02-19 12:09:34.643  INFO 13358 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2019-02-19 12:09:34.644  INFO 13358 --- [           main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.16]
-2019-02-19 12:09:34.653  INFO 13358 --- [           main] o.a.catalina.core.AprLifecycleListener   : The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: [.../Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:.]
-2019-02-19 12:09:34.737  INFO 13358 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2019-02-19 12:09:34.738  INFO 13358 --- [           main] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 1339 ms
-2019-02-19 12:09:35.145  INFO 13358 --- [           main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/api-docs] onto method [public org.springframework.http.ResponseEntity<springfox.documentation.spring.web.json.Json> springfox.documentation.swagger2.web.Swagger2Controller.getDocumentation(java.lang.String,javax.servlet.http.HttpServletRequest)]
-2019-02-19 12:09:35.219  WARN 13358 --- [           main] uration$JodaDateTimeJacksonConfiguration : spring.jackson.date-format could not be used to configure formatting of Joda's DateTime. You may want to configure spring.jackson.joda-date-time-format as well.
-2019-02-19 12:09:35.258  INFO 13358 --- [           main] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
-2019-02-19 12:09:35.383  INFO 13358 --- [           main] d.s.w.p.DocumentationPluginsBootstrapper : Context refreshed
-2019-02-19 12:09:35.400  INFO 13358 --- [           main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
-2019-02-19 12:09:35.428  INFO 13358 --- [           main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
-2019-02-19 12:09:35.580  INFO 13358 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
-2019-02-19 12:09:35.584  INFO 13358 --- [           main] c.r.c.inventory.InventoryApplication     : Started InventoryApplication in 2.579 seconds (JVM running for 2.91)
-<=========----> 75% EXECUTING [9s]
-> :bootRun
+ :: Spring Boot ::        (v2.0.1.RELEASE)
+...
+2019-04-23 11:14:18.659  INFO 59249 --- [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : FrameworkServlet 'dispatcherServlet': initialization completed in 15 ms
 
 ~~~
 
@@ -516,26 +375,26 @@ Click on **Register** to register a new user with the following details and then
 * Email: *your email*  (Don't worry! Gogs won't send you any emails)
 * Password: `openshift`
 
-> **Email** could be <username>@ocp.com
+> **Email** could be `<username>@ocp.com`
 
-![Sign Up Gogs]({% image_path cd-gogs-signup.png %}){:width="900px"}
+![Sign Up Gogs]({% image_path gogs-signup.png %}){:width="900px"}
 
 You will be redirected to the sign in page. Sign in using the above username and password.
 
 Click on the plus icon on the top navigation bar and then on **New Repository**.
 
-![Create New Repository]({% image_path inventory-spring-boot-gradle-git-new-repo-01.png %}){:width="900px"}
+![Create New Repository]({% image_path gogs-new-repo-01.png %}){:width="900px"}
 
 Give `inventory-spring-boot-gradle` as **Repository Name** and click on **Create Repository** 
 button, leaving the rest with default values.
 
-![Create New Repository]({% image_path inventory-spring-boot-gradle-git-new-repo-02.png %}){:width="700px"}
+![Create New Repository]({% image_path gogs-new-repo-02.png %}){:width="700px"}
 
 The Git repository is created now. 
 
 Click on the copy-to-clipboard icon to near the *HTTP Git url* to copy it to the clipboard which you will need in a few minutes.
 
-![Empty Repository]({% image_path inventory-spring-boot-gradle-git-new-repo-03.png %}){:width="900px"}
+![Empty Repository]({% image_path gogs-new-repo-03.png %}){:width="900px"}
 
 #### Push Inventory Code to the Git Repository
 
@@ -543,11 +402,11 @@ Now that you have a Git repository for the Inventory service, you should push th
 
 > **NOTE:** If you skipped the previous chapter you should skip this one too...
 
-Go the folder where we have generated the code (it should be `inventory-spring-boot-gradle/inventory`) folder, initialize it as a Git working copy and add the GitHub repository as the remote repository for your working copy. 
+Go to the folder where we have generated the code (it should be `inventory-spring-boot-maven/inventory-gen`) folder, initialize it as a Git working copy and add the GitHub repository as the remote repository for your working copy. 
 
 > Replace `GIT-REPO-URL` with the Git repository url copied in the previous steps
 
-> Make sure you're at `inventory-spring-boot-gradle/inventory` and that OUTPUT_DIR is defined and properly populated. If in doubt review chapter **Generating the code**!
+> Make sure you're at `inventory-spring-boot-maven/inventory-gen` and that OUTPUT_DIR is defined and properly populated. If in doubt review chapter **Generating the code**!
 
 ~~~shell
 $ git init
@@ -561,12 +420,6 @@ $ git config user.name "userXX"
 $ git config user.email "userXX@ocp.com"
 ~~~
 
-> **<font size="3" color="red">Attention:</font>** we need to delete the pom.xml file so that later the builder image don't default to Maven instead of using Gradle. More on this later... for now please delete the file.
-
-~~~shell
-$ rm pom.xml
-~~~
-
 Commit and push the existing code to the GitHub repository.
 
 ~~~shell
@@ -575,13 +428,13 @@ $ git commit -m "initial add"
 $ git push -u origin master
 ~~~
 
-Enter your Git repository username and password if you get asked to enter your credentials. Go to your `inventory-spring-boot-gradle` repository web interface and refresh the page. You should see the project files in the repository.
+Enter your Git repository username and password if you get asked to enter your credentials. Go to your `inventory-g2` repository web interface and refresh the page. You should see the project files in the repository.
 
-![Inventory Repository]({% image_path inventory-spring-boot-gradle-git-new-repo-04.png %}){:width="900px"}
+![Inventory Repository]({% image_path gogs-new-repo-04.png %}){:width="900px"}
 
 #### Deploying our Spring Boot API on OpenShift
 
-Deploying a Gradle application on Openshift is no different than deploying a Java or NodeJS application using Openshift S2I (or Source to Image).
+The easiest way to deploy a Maven Spring Boot application on Openshift is done using Openshift S2I (or Source to Image).
 
 > [Source-to-Image (S2I)](https://docs.openshift.com/container-platform/3.11/architecture/core_concepts/builds_and_image_streams.html#source-build) is a framework that makes it easy to write images that take application source code as an input and produce a new image that runs the assembled application as output.
 > The main advantage of using S2I for building reproducible container images is the ease of use for developers. As a builder image author, you must understand two basic concepts in order for your images to provide the best possible S2I performance: the build process and S2I scripts.
@@ -599,13 +452,14 @@ $ oc new-project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
 
 > Either if you have just created the required projects or not, **please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
 
-Ok, so we're sure we have a project to deploy our API, well, let's deploy our code. To do so, as mentioned before, we need a builder image capable of using Gradle, `fabric8/s2i-java` is such an image. So all that is left is using command `oc new-app` and let S2I do the rest.
+Ok, so we're sure we have a project to deploy our API, well, let's deploy our code. To do so, as mentioned before, we need a builder image capable of using Maven,  `openshift/java` is such an image,  `fabric8/s2i-java` would work as well. So all that is left is using command `oc new-app` and let S2I do the rest.
 
 > **<font size="3" color="red">Remember:</font>** to substitute GIT-REPO-URL by the actual URL of your git repository
+> The structure of the following command is as follows: `oc new-app` 
 
 ~~~shell
-$ oc new-app fabric8/s2i-java~GIT-REPO-URL --context-dir=. --name inventory-s2i
---> Found Docker image be28740 (30 hours old) from Docker Hub for "fabric8/s2i-java"
+$ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-s2i
+--> Found image 8bea1b6 (2 weeks old) in image stream "openshift/java" under tag "8" for "java:8"
 
     Java Applications 
     ----------------- 
@@ -613,12 +467,11 @@ $ oc new-app fabric8/s2i-java~GIT-REPO-URL --context-dir=. --name inventory-s2i
 
     Tags: builder, java
 
-    * An image stream tag will be created as "s2i-java:latest" that will track the source image
-    * A source build using source code from GIT-REPO-URL will be created
+    * A source build using source code from http://gogs-lab-infra.apps.serverless-c8c1.openshiftworkshop.com/developer/inventory-g2.git will be created
       * The resulting image will be pushed to image stream tag "inventory-s2i:latest"
-      * Every time "s2i-java:latest" changes a new build will be triggered
+      * Use 'start-build' to trigger a new build
     * This image will be deployed in deployment config "inventory-s2i"
-    * Ports 8080/tcp, 8778/tcp, 9779/tcp will be load balanced by service "inventory-s2i"
+    * Ports 8080/tcp, 8443/tcp, 8778/tcp will be load balanced by service "inventory-s2i"
       * Other containers can access this service through the hostname "inventory-s2i"
 
 --> Creating resources ...
@@ -633,21 +486,21 @@ $ oc new-app fabric8/s2i-java~GIT-REPO-URL --context-dir=. --name inventory-s2i
     Run 'oc status' to view your app.
 ~~~
 
-If you go the Openshift web console and head to the project where you have created your first Gradle application you should see how the Build task progesses and evetually how the pod is started and ready to receive requests.
+So far, so good, the process of building the image from the source code is running. If you go the Openshift web console and head to the project where you have created your first Spring Boot Maven application, you should see how the Build task progesses and evetually how the pod is started and ready to receive requests.
 
 > *Once the pod is ready, it's color changes to bright blue, before it should change from gray to light blue.*
 
-![Deploying on OCP]({% image_path inventory-spring-boot-gradle-deploy-api-01.png %}){:width="740px"}
+![Deploying on OCP]({% image_path inventory-spring-boot-maven-deploy-api-01.png %}){:width="740px"}
 
-> *At some point you should see that Gradle is being use, as in the next picture.*
+> *At some point you should see that Maven is being use, as in the next picture.*
 
-![Deploying on OCP]({% image_path inventory-spring-boot-gradle-deploy-api-02.png %}){:width="500px"}
+![Deploying on OCP]({% image_path inventory-spring-boot-maven-deploy-api-02.png %}){:width="500px"}
 
 After a successful built you should see a blue circle stating that 1 pod is up and running. 
 
 > So far our code is alive and kicking but you cannot access it from the internet... To solve this you can either click on `Create Route` or run a very simple command `oc expose` as explained in the next step.
 
-![Deploying on OCP]({% image_path inventory-spring-boot-gradle-deploy-api-03.png %}){:width="740px"}
+![Deploying on OCP]({% image_path inventory-spring-boot-maven-deploy-api-03.png %}){:width="740px"}
 
 In order to expose our service to the internet we need a route, next command will do the job.
 
@@ -658,13 +511,13 @@ route.route.openshift.io/inventory-s2i exposed
 
 Now if you go back to the Openshift web console you should see the route generated.
 
-![Deploying on OCP]({% image_path inventory-spring-boot-gradle-deploy-api-04.png %}){:width="740px"}
+![Deploying on OCP]({% image_path inventory-spring-boot-maven-deploy-api-04.png %}){:width="740px"}
 
 Finally, let's check that our API works properly in Openshift. Please click on the route URL, and run some tests as we did before.
 
-![Deploying on OCP]({% image_path inventory-spring-boot-gradle-deploy-api-05.png %}){:width="740px"}
+![Deploying on OCP]({% image_path inventory-spring-boot-maven-deploy-api-05.png %}){:width="740px"}
 
-Do you see an annoying red badge near the bottom right corner? Yes? It is harmless but If you want to get rid of it all you have to do is adding the following code (`function uiConfig()`) to class `OpenAPIDocumentationConfig` in package `org.openapitools.configuration`.
+Do you see an annoying red badge near the bottom right corner? Yes? It is harmless but If you want to get rid of it all you have to do is adding the following code (`function uiConfig()`) to class `OpenAPIDocumentationConfig` in package `com.redhat.cloudnative.inventory.config`.
 
 ~~~java
 ...
