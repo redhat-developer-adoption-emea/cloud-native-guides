@@ -198,7 +198,7 @@ spec:
             stage('Build') {
                 steps {
                     dir("${CONTEXT_DIR}") {
-                        sh "${mvnCmd} clean package -DskipTests"
+                        sh "${mvnCmd} clean package -DskipTests -Popenshift"
                     }
                 }
             }
