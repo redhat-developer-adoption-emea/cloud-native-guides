@@ -28,9 +28,16 @@ vars:
   NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public"
   OPENSHIFT_USER: userX
   OPENSHIFT_PASWORD: PASSWORD
+  ANGULARJS_URL: https://angularjs.org/
+  NODEJS_URL: https://nodejs.org/
+  PATTERNFLY_URL: https://www.patternfly.org/
+  SPRINGBOOT_URL: https://spring.io/projects/spring-boot/
+  WILDFLYSWARM_URL: http://wildfly-swarm.io/
+  ECLIPSE_VERTX_URL: http://vertx.io/
   
 modules:
   activate:
+  - introduction
   - getting-started
   - wildfly-swarm
   - spring-boot

@@ -2,6 +2,8 @@ config:
     renderer: markdown
 
 modules:
+  introduction:
+    name: Introduction
   getting-started:
     name: Getting Started
   getting-started-che:
