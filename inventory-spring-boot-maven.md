@@ -10,7 +10,7 @@ In order to follow this lab you'll need:
 
 * **Java 8**, for the Open API Generator. You can find it [here](https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html)
 
-* **Maven**, ...
+* **Apache Maven 3.3.x or later**, for packaging, deploying, etc. You can find it [here](https://archive.apache.org/dist/maven/maven-3).
 
 #### Retrieving the API specification
 
