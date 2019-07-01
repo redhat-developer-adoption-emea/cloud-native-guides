@@ -37,10 +37,9 @@ modules:
   - vertx
   - nodejs
   - inventory-api
-  - inventory-spring-boot-maven
-  - inventory-spring-boot-maven-metrics
-  - inventory-spring-boot-maven-cicd
-  - inventory-spring-boot-maven-implementation
+  - dotnet-core
+  - dotnet-core-custom-slave
+  - dotnet-core-complex-pipeline
   - health
   - fault-tolerance
   - app-config

@@ -157,6 +157,7 @@ spec:
         
         // TODO: change needed
         def APP_BASE = "ASK_YOUR_INSTRUCTOR"
+        def LAB_INFRA_PROJECT_NAME = "ASK_YOUR_INSTRUCTOR"
 
         def APP_NAME = "inventory"
         def APP_VERSION = "0.0.1-SNAPSHOT"
@@ -170,14 +171,14 @@ spec:
         def GIT_REF = "master"
         def CONTEXT_DIR = "."
 
-        def NEXUS = "http://nexus-lab-infra." + APP_BASE
+        def NEXUS = "http://nexus-" + LAB_INFRA_PROJECT_NAME + "." + APP_BASE
         def NEXUS_USERNAME = "admin"
         def NEXUS_PASSWORD = "admin123"
         def NEXUS_PATH = "com/redhat/cloudnative/inventory"
 
         // TODO: change needed
         def SONAR_TOKEN = "ASK_YOUR_INSTRUCTOR"
-        def SONAR = "http://sonarqube-lab-infra." + APP_BASE
+        def SONAR = "http://sonarqube-" + LAB_INFRA_PROJECT_NAME + "." + APP_BASE
                 
         def BUILD_NAME = APP_NAME
         def BUILD_IMAGE_STREAM = "openshift/redhat-openjdk18-openshift:1.4"
