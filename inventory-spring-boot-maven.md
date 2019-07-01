@@ -4,15 +4,6 @@ In this lab you will learn about **how you can build microservices using** **Spr
 
 You will use a previously created Open API specification or you'll be given one by the instructor.
 
-#### What is Maven?
-
-From ???:
-
-> * 
-
-Red Hat Openshift ... supports a 
-
-
 #### Preprequisites
 
 In order to follow this lab you'll need:
