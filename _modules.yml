@@ -21,7 +21,7 @@ modules:
   inventory-spring-boot-gradle-cicd:
     name: Adding Continuous Delivery to Inventory (Spring Boot/Gradle)
   inventory-spring-boot-gradle-implementation:
-    name: Adding Spring Data to Inventory (Spring Boot/Gradle)
+    name: Coding an implementation for our Inventory API
   inventory-spring-boot-gradle-config:
     name: Externalizing Configuration to our Spring Boot + Gradle Inventory
   inventory-spring-boot-maven:
@@ -31,9 +31,9 @@ modules:
   inventory-spring-boot-maven-cicd:
     name: Adding Continuous Delivery to Inventory (Spring Boot/Maven)
   inventory-spring-boot-maven-implementation:
-    name: Adding Spring Data to Inventory (Spring Boot/Maven)
+    name: Coding an implementation for our Inventory API
   inventory-spring-boot-maven-implementation-mybatis:
-    name: Adding MyBatis to Inventory (Spring Boot/Maven)
+    name: Coding an implementation for our Inventory API
   dotnet-core:
     name: Alternative Inventory with .Net Core
   dotnet-core-custom-slave:
