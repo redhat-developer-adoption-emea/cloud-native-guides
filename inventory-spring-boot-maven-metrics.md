@@ -224,7 +224,7 @@ $ git push origin master
 > **Please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
 
 ~~~shell
-$  oc label svc inventory-s2i team=spring-boot-actuator
+$  oc label svc inventory-s2i team=spring-boot-actuator -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~ 
 
 Finally let's rebuild the image (start a new build) which leads to the deployment of our new code.
@@ -232,13 +232,13 @@ Finally let's rebuild the image (start a new build) which leads to the deploymen
 > **Please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
 
 ~~~shell
-$ oc start-build bc/inventory-s2i
+$ oc start-build bc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 You can either progress of the build in the web console or running this command.
 
 ~~~shell
-$ oc logs -f bc/inventory-s2i
+$ oc logs -f bc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 Once it has finished, the new image should be rolled out and our Prometheus-ready code should be live.

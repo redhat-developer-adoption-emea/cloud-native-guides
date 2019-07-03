@@ -4,16 +4,6 @@ In this lab you will learn about **how you can build microservices using** **Spr
 
 You will use a previously created Open API specification or you'll be given one by the instructor.
 
-#### What is Gradle?
-
-From ???:
-
-> * 
-
-Red Hat Openshift ... supports a 
-
-You can find more information about .Net Core in RHEL [here](https://developers.redhat.com/products/dotnet/overview/)
-
 #### Preprequisites
 
 In order to follow this lab you'll need:

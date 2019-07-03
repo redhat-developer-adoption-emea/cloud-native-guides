@@ -73,124 +73,7 @@ The whole purpose of this chapter is to generate code from the API specification
 
 This mismatch has to do with the examples area in our YAML, in fact it has to do with the representation of those examples string vs object. Please open file `/src/main/resources/inventory.yaml` and apply the following changes.
 
-> Error is in element:
-> 
-> * `paths→/inventory→get→responses→200→content→application/json→examples→AllItems→value`
-
-~~~yaml
-...
-paths:
-  /inventory:
-    get:
-      ...
-      responses:
-        200:
-          ...
-          content:
-            application/json:
-              ...
-              examples:
-                AllItems:
-                  value: |-
-                    [{"itemId":"329299","quantity":35},{"itemId":"329199","quantity":12},
-                    {"itemId":"165613","quantity":45},{"itemId":"165614","quantity":87},
-                    {"itemId":"165954","quantity":43},{"itemId":"444434","quantity":32},
-                    {"itemId":"444435","quantity":53}]
-...
-~~~
-
-> It should be like this:
-> 
-> * So from `value: |-` to `value:`
-
-~~~yaml
-...
-paths:
-  /inventory:
-    get:
-      ...
-      responses:
-        200:
-          ...
-          content:
-            application/json:
-              ...
-              examples:
-                AllItems:
-                  value:
-                    [{"itemId":"329299","quantity":35},{"itemId":"329199","quantity":12},
-                    {"itemId":"165613","quantity":45},{"itemId":"165614","quantity":87},
-                    {"itemId":"165954","quantity":43},{"itemId":"444434","quantity":32},
-                    {"itemId":"444435","quantity":53}]
-...
-~~~
-
-> Next errors are in elements:
-> 
-> * `paths→/inventory/{itemId}→get→responses→200→content→application/json→examples→OneItem→value`
-> * `paths→/inventory/{itemId}→get→responses→404→content→application/json→examples→NotFoundError→value`
-
-~~~yaml
-...
-paths:
-...
-  /inventory/{itemId}:
-    get:
-      ...
-      responses:
-        200:
-          ...
-          content:
-            application/json:
-              ...
-              examples:
-                OneItem:
-                  value: '{"itemId":"329299","quantity":35}'
-        404:
-          ...
-          content:
-            application/json:
-              ...
-              examples:
-                NotFoundError:
-                  value: '{"code" : "404", "message" : "Item 53 was not found"}'
-...
-~~~
-
-> It should be as follows:
-> 
-> * So from `value: '{"itemId":"329299","quantity":35}'` to `value: {"itemId":"329299","quantity":35}`
-> * So from `value: '{"code" : "404", "message" : "Item 53 was not found"}'` to `value: {"code" : "404", "message" : "Item 53 was not found"}`
-
-~~~yaml
-...
-paths:
-...
-  /inventory/{itemId}:
-    get:
-      ...
-      responses:
-        200:
-          ...
-          content:
-            application/json:
-              ...
-              examples:
-                OneItem:
-                  value: {"itemId":"329299","quantity":35}
-        404:
-          ...
-          content:
-            application/json:
-              ...
-              examples:
-                NotFoundError:
-                  value: {"code" : "404", "message" : "Item 53 was not found"}
-...
-~~~
-
-
-> Next errors are in elements:
+> Errors are in elements:
 > 
 > * `components→schemas→InventoryItem→example`
 > * `components→schemas→GenericError→example`
@@ -355,6 +238,8 @@ So far so good, now we have to create a git repo and push our code to it.
 
 #### Creating a git repo for the generated code
 
+> You can skip this part and use [this](https://github.com/cvicens/inventory-api-1st-maven) repository.
+
 You can use any Git server (e.g. GitHub, BitBucket, etc) for this lab but we have prepared a Gogs git server which you can access here: 
 
 {{ GIT_URL }}
@@ -449,7 +334,7 @@ Ok, so we're sure we have a project to deploy our API, well, let's deploy our co
 > The structure of the following command is as follows: `oc new-app` 
 
 ~~~shell
-$ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-s2i
+$ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-s2i -n  {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
 --> Found image 8bea1b6 (2 weeks old) in image stream "openshift/java" under tag "8" for "java:8"
 
     Java Applications 
@@ -496,7 +381,7 @@ After a successful built you should see a blue circle stating that 1 pod is up a
 In order to expose our service to the internet we need a route, next command will do the job.
 
 ~~~shell
-$ oc expose svc/inventory-s2i
+$ oc expose svc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 route.route.openshift.io/inventory-s2i exposed
 ~~~
 

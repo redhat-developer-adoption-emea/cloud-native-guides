@@ -60,6 +60,10 @@ Let's create a folder named `inventory-dotnet-core-lab` for this lab.
 
 > Copy `Inventory API.yaml` (or the name you gave it when you download it) to folder `inventory-dotnet-core-lab`.
 
+~~~shell
+$ cp ~/Downloads/Inventory\ API.yaml ./inventory.yaml
+~~~
+
 Next you'll create a `bin` folder, download the API Generator CLI...
 
 ~~~shell
@@ -88,7 +92,7 @@ Open an editor and copy/paste this content, then save it in `inventory-dotnet-co
 Finally let's generate the code.
 
 ~~~shell
-> java -jar ./bin/openapi-generator-cli.jar generate -i "Inventory API.yaml" -g aspnetcore -o %OUTPUT_DIR% -c openapi-config.json
+> java -jar ./bin/openapi-generator-cli.jar generate -i inventory.yaml -g aspnetcore -o %OUTPUT_DIR% -c openapi-config.json
 ~~~
 
 **For *nix systems.**
@@ -100,6 +104,10 @@ $ mkdir inventory-dotnet-core-lab
 ~~~
 
 > Copy `Inventory API.yaml` (or the name you gave it when you download it) to folder `inventory-dotnet-core-lab`.
+
+~~~shell
+$ cp ~/Downloads/Inventory\ API.yaml ./inventory.yaml
+~~~
 
 Next you'll create a `bin` folder, download the API Generator CLI...
 
@@ -118,7 +126,7 @@ $ export OUTPUT_DIR="inventory-gen"
 Finally let's generate the code.
 
 ~~~shell
-$ java -jar ./bin/openapi-generator-cli.jar generate -i Inventory\ API.yaml -g aspnetcore -o $OUTPUT_DIR -c openapi-config.json
+$ java -jar ./bin/openapi-generator-cli.jar generate -i inventory.yaml -g aspnetcore -o $OUTPUT_DIR -c openapi-config.json
 ~~~
 
 #### Restoring NuGet packages
@@ -167,7 +175,7 @@ public virtual IActionResult ApiInventoryGet()
     // return StatusCode(200, default(List<InventoryItem>));
 
     string exampleJson = null;
-    exampleJson = "\"{\\"itemId\\":\\"329299\\",\\"quantity\\":35}\"";
+    exampleJson = "{\n  \"itemId\" : \"329299\",\n  \"quantity\" : 35\n}";
     
     var example = exampleJson != null
     ? JsonConvert.DeserializeObject<List<InventoryItem>>(exampleJson)
@@ -180,60 +188,13 @@ public virtual IActionResult ApiInventoryGet()
 The offending line is:
 
 ~~~csharp
-exampleJson = "\"{\\"itemId\\":\\"329299\\",\\"quantity\\":35}\"";
+exampleJson = "{\n  \"itemId\" : \"329299\",\n  \"quantity\" : 35\n}";
 ~~~
 
 It should be:
 
 ~~~csharp
 exampleJson = "[{\"itemId\":\"329299\",\"quantity\":35},{\"itemId\":\"329199\",\"quantity\":12},{\"itemId\":\"165613\",\"quantity\":45},{\"itemId\":\"165614\",\"quantity\":87},{\"itemId\":\"165954\",\"quantity\":43},{\"itemId\":\"444434\",\"quantity\":32},{\"itemId\":\"444435\",\"quantity\":53}]";
-~~~
-
-Now let's fix the second error. Please locate the following piece of code in `DefaultApi.cs`, this time the code corresponds to the `GET` operation to get the inventory item given an id. 
-
-~~~csharp
-/// <summary>
-/// 
-/// </summary>
-/// <remarks>Returns the item for the id provided or an error</remarks>
-/// <param name="itemId"></param>
-/// <response code="200">Should return the item for the id provided</response>
-/// <response code="404">Item not found</response>
-[HttpGet]
-[Route("/api/inventory/{itemId}")]
-[ValidateModelState]
-[SwaggerOperation("ApiInventoryItemIdGet")]
-[SwaggerResponse(statusCode: 200, type: typeof(InventoryItem), description: "Should return the item for the id provided")]
-[SwaggerResponse(statusCode: 404, type: typeof(GenericError), description: "Item not found")]
-public virtual IActionResult ApiInventoryItemIdGet([FromRoute][Required]string itemId)
-{ 
-    //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-    // return StatusCode(200, default(InventoryItem));
-
-    //TODO: Uncomment the next line to return response 404 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-    // return StatusCode(404, default(GenericError));
-
-    string exampleJson = null;
-    exampleJson = "\"{\\"itemId\\":\\"329299\\",\\"quantity\\":35}\"";
-    
-    var example = exampleJson != null
-    ? JsonConvert.DeserializeObject<InventoryItem>(exampleJson)
-    : default(InventoryItem);
-    //TODO: Change the data returned
-    return new ObjectResult(example);
-}
-~~~
-
-The offending line is:
-
-~~~csharp
-exampleJson = "\"{\\"itemId\\":\\"329299\\",\\"quantity\\":35}\"";
-~~~
-
-It should be:
-
-~~~csharp
-exampleJson = "{\"itemId\":\"329299\",\"quantity\":35}";
 ~~~
 
 > If you're curious the original JSON version of our specification is here `src/CoolstoreXX.Inventory/wwwroot/openapi-original.json`
@@ -315,7 +276,7 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
     ...
 ~~~
 
-Don't forget import the Prometheus library `using Prometheus;`
+>   Don't forget import the Prometheus library `using Prometheus;`
 
 So far, we have added Prometheus support and if you execute the code again you should be able to invoke `/metrics` but we haven't added our own "business" metrics, so let's do it now.
 
@@ -414,6 +375,8 @@ public virtual IActionResult ApiInventoryItemIdGet([FromRoute][Required]string i
 }
 ~~~
 
+> Don't forget import the Prometheus library `using Prometheus;`
+
 Finally, let's run our code again.
 
 ~~~shell
@@ -445,11 +408,11 @@ So far so good, now we have to create a git repo and push our code to it.
 
 #### Creating a git repo for the generated code
 
+> You can skip this part and use [this](https://github.com/cvicens/inventory-api-1st-dotnet) repository.
+
 You can use any Git server (e.g. GitHub, BitBucket, etc) for this lab but we have prepared a Gogs git server which you can access here: 
 
 {{ GIT_URL }}
-
-> **TIP:** Or you could just use a repo prepared with a ready to use copy of the code you've previously generated. This repo is [here]({{ GIT_URL }}/user99/inventory-dotnet-core.git)
 
 Click on **Register** to register a new user with the following details and then click on 
 **Create New Account**: 
