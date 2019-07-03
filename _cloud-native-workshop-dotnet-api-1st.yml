@@ -1,0 +1,39 @@
+id: "cloudnative"
+name: "OpenShift Cloud-Native Workshop"
+
+content:
+  url: https://raw.githubusercontent.com/redhat-developer-adoption-emea/cloud-native-guides/ocp-3.10
+
+vars:
+  GITHUB_REF: "ocp-3.10"
+  OPENSHIFT_DOCS_BASE: "https://docs.openshift.com/container-platform/3.10"
+  COOLSTORE_PROJECT: "coolstore"
+  PROJECT_SUFFIX: "-XX"
+  DOWNLOAD_CLIENT_WINDOWS: https://mirror.openshift.com/pub/openshift-v3/clients/3.10.23/windows/oc.zip
+  DOWNLOAD_CLIENT_MAC: https://mirror.openshift.com/pub/openshift-v3/clients/3.10.23/macosx/oc.tar.gz
+  DOWNLOAD_CLIENT_LIN64: https://mirror.openshift.com/pub/openshift-v3/clients/3.10.23/linux/oc.tar.gz
+  LABS_GIT_REPO: https://github.com/redhat-developer-adoption-emea/cloud-native-labs.git
+  LABS_DOWNLOAD_URL: https://github.com/redhat-developer-adoption-emea/cloud-native-labs/archive/ocp-3.10.zip
+  WEB_NODEJS_GIT_REPO: https://github.com/redhat-developer-adoption-emea/cloud-native-labs/tree/ocp-3.10/web-nodejs
+  REMOTE_DEBUGGER_JDB: true
+  REMOTE_DEBUGGER_JBDS: true
+  REMOTE_DEBUGGER_IDEA: true
+  MINISHIFT: false 
+  OPENSHIFT_CONSOLE_URL: OPENSHIFT-CONSOLE-URL
+  INVENTORY_ROUTE_HOST: INVENTORY-ROUTE-HOST
+  CATALOG_ROUTE_HOST: CATALOG-ROUTE-HOST
+  API_GATEWAY_ROUTE_HOST: API-GATEWAY-ROUTE-HOST
+  ECLIPSE_CHE_URL: "http://che-lab-infra.192.168.99.100.nip.io"
+  GIT_URL: "http://gogs-lab-infra.192.168.99.100.nip.io"
+  NEXUS_URL: "http://nexus.lab-infra.svc:8081/repository/maven-all-public"
+  OPENSHIFT_USER: userX
+  OPENSHIFT_PASWORD: PASSWORD
+  
+modules:
+  activate:
+  - getting-started
+  - inventory-api
+  - dotnet-core
+  - dotnet-core-custom-slave
+  - dotnet-core-complex-pipeline
+  - env-info
