@@ -158,4 +158,109 @@ Go to the **{{COOLSTORE_PROJECT}}-{{OPENSHIFT_USER}}** in the OpenShift Web Cons
 
 ![Secrets as Env Vars]({% image_path config-psql-secret.png %}){:width="900px"}
 
+#### Optional: Running locally but loading the config map
+
+If you were wondering 'Can I test the Config Map configration locally?'... Lucky of you, you can. Keep reading.
+
+First of all if this is possible is because Kubernetes injects some very useful environment variables, namely:
+
+* KUBERNETES_SERVICE_HOST hostname of the kubernetes API server
+* KUBERNETES_SERVICE_PORT port of the kubernetes API server
+* KUBERNETES_CLIENT_SERVICEACCOUNT_ROOT path where the service account token, certificates and namespace where the POD is running are located
+
+These environment variable are conveniently set by kubernetes... but what if you set them yourself in your local environment? It should work in the same fashion because the Spring Cloud components rely on them.
+
+So let's get started. First of all create a folder called `./run`
+
+```
+$ mkdir ./run
+```
+
+Next we need to find out the name of the secret of the default service account in our namespace/project. Be sure your in the correct namespace or use `-n` wisely.
+
+```
+$ oc get sa/default -o yaml
+apiVersion: v1
+imagePullSecrets:
+- name: default-dockercfg-m8mh9
+kind: ServiceAccount
+metadata:
+  creationTimestamp: 2019-08-29T06:37:39Z
+  name: default
+  namespace: coolstore-XX
+  resourceVersion: "210107"
+  selfLink: /api/v1/namespaces/coolstore-XX/serviceaccounts/default
+  uid: 7ec29729-ca27-11e9-98bf-0a3ea87d8972
+secrets:
+- name: default-token-4zdw8
+- name: default-dockercfg-m8mh9
+```
+
+In this case the name of the secret we're interested in is `default-token-4zdw8`. Now let's get the `token`, `ca.crt` and `namespace` values as in the next commands. Change the name of token to the one you've obtained before.
+
+```
+$ oc get secret/default-token-4zdw8 -o json | jq -r '.data."ca.crt"' | base64 -D > ./run/ca.crt
+$ oc get secret/default-token-4zdw8 -o json | jq -r '.data."namespace"' | base64 -D > ./run/namespace
+$ oc get secret/default-token-4zdw8 -o json | jq -r '.data."token"' | base64 -D > ./run/token
+```
+
+Finally let's set the environment variables with the appropriate values for your cluster.
+
+```
+export KUBERNETES_SERVICE_HOST=<your-kubernetes-cluster-api-hostname>
+export KUBERNETES_SERVICE_PORT=<your-kubernetes-cluster-api-port>
+export KUBERNETES_CLIENT_SERVICEACCOUNT_ROOT=$(pwd)/run
+```
+
+Now if you change the config map `inventory` so that the database url points to localhost. You can do this with `oc edit` as bellow.
+
+```
+oc edit cm/inventory
+```
+
+Change the content so that `spring.datasource.url` points to localhost.
+
+```
+spring.datasource.url=jdbc:postgresql://localhost:5432/inventory
+```
+
+```
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+data:
+  application.properties: |-
+    # Datasource related config
+    #spring.datasource.url=jdbc:postgresql://inventory-postgresql:5432/inventory
+    spring.datasource.url=jdbc:postgresql://localhost:5432/inventory
+    spring.datasource.username=inventory
+    spring.datasource.password=inventory
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    spring.jpa.hibernate.ddl-auto=create
+kind: ConfigMap
+metadata:
+  creationTimestamp: 2019-08-29T16:54:34Z
+  name: inventory
+  namespace: coolstore-98
+  resourceVersion: "303994"
+  selfLink: /api/v1/namespaces/coolstore-98/configmaps/inventory
+  uid: adb05815-ca7d-11e9-98bf-0a3ea87d8972
+```
+
+In another terminal window use `oc port-forward` so that the DB is available in your laptop (`localhost`).
+
+```
+$ oc port-forward dc/inventory-postgresql 5432:5432
+Forwarding from 127.0.0.1:5432 -> 5432
+Forwarding from [::1]:5432 -> 5432
+```
+
+Now we're ready to run our `inventory` service locally, using the config map configuration pointing to a DB running in Openshift port-forwarded to `localhost`, sweet.
+
+```
+./gradlew bootRun
+```
+
 That's all for this lab! You are ready to move on to the next lab.
