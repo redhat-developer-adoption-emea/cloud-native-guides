@@ -48,10 +48,21 @@ Spring Boot application configuration is provided via a properties file called `
 
 In this lab, you will configure the Inventory service which is based on Spring Boot to override the default configuration using an alternative `application.properties` backed by a config map.
 
+By default Spring Cloud expects a config map named as the value of property `spring.application.name`
+
+So please open `./src/main/resources/application.properties` and add the following property at the top of the file.
+
+```shell
+spring.application.name=inventory
+...
+```
+
+Now we have to create a config map named `inventory` where there is a key named as `application.properties` which content/value is the next.
+
 Create a config map with the the Spring Boot configuration content using the PostgreSQL database credentials:
 
 ~~~shell
-$ cat <<EOF > ./application.properties
+$ cat <<EOF > ./application-openshift.properties
 spring.datasource.url=jdbc:postgresql://inventory-postgresql:5432/inventory
 spring.datasource.username=inventory
 spring.datasource.password=inventory
@@ -63,7 +74,7 @@ EOF
 > The hostname defined for the PostgreSQL connection-url corresponds to the PostgreSQL service name published on OpenShift. This name will be resolved by the internal DNS server exposed by OpenShift and accessible to containers running on OpenShift.
 
 ~~~shell
-$ oc create configmap inventory --from-file=./application.properties
+$ oc create configmap inventory --from-file=application.properties=./src/main/resources/application-openshift.properties
 ~~~
 
 > You can use the OpenShift Web Console to create config maps by clicking on **Resources >> Config Maps**  on the left sidebar inside the your project. Click on **Create Config Map** button to create a config map with the following info:
@@ -85,13 +96,13 @@ $ oc policy add-role-to-user view -n {{COOLSTORE_PROJECT}}-{{OPENSHIFT_USER}} -z
 Delete the Inventory container to make it start again and look for the config maps:
 
 ~~~shell
-$ oc delete pod -l app=inventory
+$ oc delete pod -l app=inventory-s2i
 ~~~
 
-When the Catalog container is ready, verify that the PostgreSQL database is being used. Check the Inventory pod logs:
+When the Inventory container is ready, verify that the PostgreSQL database is being used. Check the Inventory pod logs:
 
 ~~~shell
-$ oc logs dc/inventory | grep hibernate.dialect
+$ oc logs dc/inventory-s2i | grep hibernate.dialect
 
 2017-08-10 21:07:51.670  INFO 1 --- [           main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL94Dialect
 ~~~
@@ -107,7 +118,7 @@ Once connected to the PostgreSQL container, run the following:
 > Run this command inside the Inventory PostgreSQL container, after opening a remote shell to it.
 
 ~~~shell
-$ psql -U catalog -c "select * from inventory"
+$ psql -U inventory -c "select * from inventory"
 $ exit
 ~~~
 
@@ -116,10 +127,9 @@ $ exit
 Config map is a superb mechanism for externalizing application configuration while keeping containers independent of in which environment or on what container platform they are running. 
 Nevertheless, due to their clear-text nature, they are not suitable for sensitive data like database credentials, SSH certificates, etc. In the current lab, we used config maps for database credentials to simplify the steps however for production environments, you should opt for a more secure way to handle sensitive data.
 
-Fortunately, OpenShift already provides a secure mechanism for handling sensitive data which is called [Secrets]({{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html). Secret objects act and are used similar to config maps however with the difference that they are encrypted as they travel over the wire and also at rest when kept on a persistent disk. Like config maps, secrets can be injected into 
-containers as environment variables or files on the filesystem using a temporary file-storage facility (tmpfs).
+Fortunately, OpenShift already provides a mechanism for handling sensitive data which is called [Secrets]({{OPENSHIFT_DOCS_BASE}}/dev_guide/secrets.html). Secret objects act and are used similar to config maps however with the difference that they are encrypted as they travel over the wire and also at rest when kept on a persistent disk. Like config maps, secrets can be injected into containers as environment variables or files on the filesystem using a temporary file-storage facility (tmpfs).
 
-You won't create any secrets in this lab however you have already created a secret when you created the PostgreSQL databases for the Catalog service. The PostgreSQL template by default stores the database credentials in a secret in the project it's being created:
+You won't create any secrets in this lab however you have already created a secret when you created the PostgreSQL databases for the Inventory service. The PostgreSQL template by default stores the database credentials in a secret in the project it's being created:
 
 ~~~shell
 $ oc describe secret inventory-postgresql

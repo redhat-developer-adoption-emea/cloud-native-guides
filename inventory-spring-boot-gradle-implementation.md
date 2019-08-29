@@ -4,6 +4,8 @@ Before we start adding actual code, we have to take some coutermeasures to avoid
 
 Open file `.openapi-generator-ignore` find the the following lines right.
 
+> NOTE: This is not really needed in this lab, just a best practice when dealing with code generators
+
 ~~~shell
 # Use this file to prevent files from being overwritten by the generator.
 # The patterns follow closely to .gitignore or .dockerignore.
