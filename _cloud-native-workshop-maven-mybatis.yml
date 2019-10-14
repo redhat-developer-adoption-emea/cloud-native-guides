@@ -39,10 +39,6 @@ modules:
   activate:
   - introduction
   - getting-started
-  - wildfly-swarm
-  - spring-boot
-  - vertx
-  - nodejs
   - inventory-api
   - inventory-spring-boot-maven
   - inventory-spring-boot-maven-metrics
