@@ -152,7 +152,7 @@ spring.datasource.initialization-mode=always
 
 Create a folder `data` under `./src/main/java/com/redhat/cloudnative/inventory` then create a file named `InventoryRepository.java` with the next content:
 
-```java
+~~~java
 package com.redhat.cloudnative.inventory.data;
 
 import com.redhat.cloudnative.inventory.model.InventoryItem;
@@ -164,7 +164,7 @@ public interface InventoryRepository extends JpaRepository<InventoryItem, Intege
     public InventoryItem findByItemId(String itemId);
 }
 
-```
+~~~
 
 #### Adjusting the InventoryItem for Spring Data
 
@@ -177,7 +177,7 @@ Now we have modify our `InventoryItem` so that it can be used from `InventoryRep
 
 Look at these changes in the Java class (only relevant code shown).
 
-```java
+~~~java
 ...
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -188,7 +188,7 @@ public class InventoryItem  implements Serializable  {
   @JsonProperty("itemId")
   private String itemId;
   ...
-```
+~~~
 
 #### Overriding the default Inventory API
 
@@ -202,7 +202,7 @@ Original java code:
 
 > As you can see there are no implementations for methods `inventoryItemIdGet` and `inventoryGet` so the default ones in `InventoryApi` will be used.
 
-```java
+~~~java
 package com.redhat.cloudnative.inventory.api;
 
 import org.springframework.stereotype.Controller;
@@ -228,7 +228,7 @@ public class InventoryApiController implements InventoryApi {
     }
 
 }
-```
+~~~
 
 Here you are the most interesting changes introduced:
 
@@ -236,24 +236,24 @@ Here you are the most interesting changes introduced:
 
 **Injection of an InventoryRepository bean**
 
-```java
+~~~java
 @org.springframework.beans.factory.annotation.Autowired
 private InventoryRepository inventoryRepository;
-```
+~~~
 
 **Using InventoyRepository to get all InventoryItems**
 
-```java
+~~~java
 public ResponseEntity<List<InventoryItem>> inventoryGet() {
     ...
     List<InventoryItem> _items = inventoryRepository.findAll();
     ...
 }
-```
+~~~
 
 **Using InventoyRepository to get an InventoryItem by Id**
 
-```java
+~~~java
 @Override
 public ResponseEntity<InventoryItem> inventoryItemIdGet(@PathVariable("itemId") String itemId) {
     ...
@@ -264,7 +264,7 @@ public ResponseEntity<InventoryItem> inventoryItemIdGet(@PathVariable("itemId") 
     }
     ...
 }
-```
+~~~
 
 Please substitute the current implementation of `InventoryApiController` with the next one.
 
