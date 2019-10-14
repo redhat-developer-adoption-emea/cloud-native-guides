@@ -16,7 +16,8 @@ And update accordingly to match the following.
 # Use this file to prevent files from being overwritten by the generator.
 # The patterns follow closely to .gitignore or .dockerignore.
 *Impl.java
-InventoryApi.java
+InventoryApiController.java
+InventoryItem.java
 OpenAPIDocumentationConfig.java
 application*.properties
 ...
@@ -30,11 +31,10 @@ Open `pom.xml` and add the next dependencies.
 
 ~~~xml
     ...
-    <!-- MyBatis -->
+    <!-- DB -->
     <dependency>
-        <groupId>org.mybatis.spring.boot</groupId>
-        <artifactId>mybatis-spring-boot-starter</artifactId>
-        <version>2.0.1</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
     <dependency>
@@ -137,56 +137,136 @@ Additionally let's add two profiles to our `pom.xml` so that we can use H2 embed
 
 Run `mvn spring-boot:run` to check that we haven't broken anything.
 
-#### Adapt application properties to MyBatis
+#### Adapt application properties to
 
 Please open file `./src/main/resources/application.properties ` and add the following properties.
 
 ~~~shell
 ...
-# MyBatis
-spring.datasource.schema=classpath:import.sql
-logging.level.root=WARN
-logging.level.sample.mybatis.mapper=TRACE
+# Data Source
+spring.jpa.hibernate.ddl-auto=create
+spring.datasource.initialization-mode=always
 ~~~
 
-#### Creating the InventoryMapper
+#### Creating the Spring Data Repository
 
-Let's create a My Batis mapper to implement the Inventory Service methods: `inventoryItemIdGet` and `inventoryGet`.
+Create a folder `data` under `./src/main/java/com/redhat/cloudnative/inventory` then create a file named `InventoryRepository.java` with the next content:
 
-~~~shell
-cat <<EOF > ./src/main/java/com/redhat/cloudnative/inventory/mapper/InventoryMapper.java
-package com.redhat.cloudnative.inventory.mapper;
-
-import java.util.List;
-import java.util.Optional;
+```java
+package com.redhat.cloudnative.inventory.data;
 
 import com.redhat.cloudnative.inventory.model.InventoryItem;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
 
-@Mapper
-public interface InventoryMapper {
-
-	@Select("select itemId, quantity from inventory")
-	List<InventoryItem> findAll();
-
-	@Select("select itemId, quantity from inventory where itemId = #{itemId}")
-	Optional<InventoryItem> findByItemId(@Param("itemId") Integer itemId);
-
+public interface InventoryRepository extends JpaRepository<InventoryItem, Integer> {
+    public InventoryItem findByItemId(String itemId);
 }
-~~~
+
+```
+
+#### Adjusting the InventoryItem for Spring Data
+
+Now we have modify our `InventoryItem` so that it can be used from `InventoryRepository`.
+
+> These are the changes needed:
+> * Add `@Entity(name = "Inventory")` to `InventoryItem`
+> * Add `@Id` to `private String itemId`
+> * Adding imports for `javax.persistence.Entity` and import `javax.persistence.Id`
+
+Look at these changes in the Java class (only relevant code shown).
+
+```java
+...
+import javax.persistence.Entity;
+import javax.persistence.Id;
+...
+@Entity(name = "Inventory")
+public class InventoryItem  implements Serializable  {
+  @Id
+  @JsonProperty("itemId")
+  private String itemId;
+  ...
+```
 
 #### Overriding the default Inventory API
 
 So far we have been returning default 'sample' data, as we have seen previously in file `./src/main/java/com/redhat/cloudnative/inventory/api/InventoryApi.java`. Nevertheless, if you look closely, InventoryAPI is an `interface`, not a `class`, which defines `default` implementations for the methods we're interested in: `inventoryItemIdGet` and `inventoryGet`.
 
-The real implementation, though, should be planted in `class`, `InventoryApiController.java`. Please substitute the current implementation with the next one.
+The real implementation, though, should be planted in `class` `InventoryApiController.java`. 
 
-> Pay attention to the implementation of the methods, specially where we use the InventoryMapper as in: `List<InventoryItem> _items = inventoryMapper.findAll();`
-> 
-> **Path:** `./src/main/java/com/redhat/cloudnative/inventory/api/InventoryApi.java`
+> **Path:** `./src/main/java/com/redhat/cloudnative/inventory/api/InventoryApiController.java`
+
+Original java code:
+
+> As you can see there are no implementations for methods `inventoryItemIdGet` and `inventoryGet` so the default ones in `InventoryApi` will be used.
+
+```java
+package com.redhat.cloudnative.inventory.api;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.context.request.NativeWebRequest;
+import java.util.Optional;
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2019-10-14T19:25:58.590+03:00[Asia/Qatar]")
+
+@Controller
+@RequestMapping("${openapi.inventory.base-path:/api}")
+public class InventoryApiController implements InventoryApi {
+
+    private final NativeWebRequest request;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public InventoryApiController(NativeWebRequest request) {
+        this.request = request;
+    }
+
+    @Override
+    public Optional<NativeWebRequest> getRequest() {
+        return Optional.ofNullable(request);
+    }
+
+}
+```
+
+Here you are the most interesting changes introduced:
+
+> *Only relevant parts of the code are hightlighted below*
+
+**Injection of an InventoryRepository bean**
+
+```java
+@org.springframework.beans.factory.annotation.Autowired
+private InventoryRepository inventoryRepository;
+```
+
+**Using InventoyRepository to get all InventoryItems**
+
+```java
+public ResponseEntity<List<InventoryItem>> inventoryGet() {
+    ...
+    List<InventoryItem> _items = inventoryRepository.findAll();
+    ...
+}
+```
+
+**Using InventoyRepository to get an InventoryItem by Id**
+
+```java
+@Override
+public ResponseEntity<InventoryItem> inventoryItemIdGet(@PathVariable("itemId") String itemId) {
+    ...
+    InventoryItem _item = inventoryRepository.findByItemId(itemId);
+    if (_item != null) {
+        item.setItemId(_item.getItemId());
+        item.setQuantity(_item.getQuantity());
+    }
+    ...
+}
+```
+
+Please substitute the current implementation of `InventoryApiController` with the next one.
 
 ~~~java
 package com.redhat.cloudnative.inventory.api;
@@ -208,7 +288,7 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.redhat.cloudnative.inventory.mapper.InventoryMapper;
+import com.redhat.cloudnative.inventory.data.InventoryRepository;
 import com.redhat.cloudnative.inventory.model.InventoryItem;
 
 @javax.annotation.Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2019-04-23T11:23:32.594+02:00[Europe/Madrid]")
@@ -220,7 +300,7 @@ public class InventoryApiController implements InventoryApi {
     private final NativeWebRequest request;
 
     @org.springframework.beans.factory.annotation.Autowired
-    private final InventoryMapper inventoryMapper = null;
+    private InventoryRepository inventoryRepository;
 
     @org.springframework.beans.factory.annotation.Autowired
     public InventoryApiController(NativeWebRequest request) {
@@ -248,7 +328,7 @@ public class InventoryApiController implements InventoryApi {
                         res.setCharacterEncoding("UTF-8");
                         res.addHeader("Content-Type", "application/json");
                         
-                        List<InventoryItem> _items = inventoryMapper.findAll();
+                        List<InventoryItem> _items = inventoryRepository.findAll();
                         items.addAll(_items);
                         break;
                     }
@@ -275,10 +355,11 @@ public class InventoryApiController implements InventoryApi {
                         response.setCharacterEncoding("UTF-8");
                         response.addHeader("Content-Type", "application/json");
                         
-                        inventoryMapper.findByItemId(new Integer(itemId)).ifPresent(_item -> {
+                        InventoryItem _item = inventoryRepository.findByItemId(itemId);
+                        if (_item != null) {
                             item.setItemId(_item.getItemId());
                             item.setQuantity(_item.getQuantity());
-                        });
+                        }
                         break;
                     }
                 }
@@ -297,11 +378,8 @@ public class InventoryApiController implements InventoryApi {
 }
 ~~~
 
-> As you can see there is  a dependency injected with `@AutoWired`: **inventoryMapper**.
-> 
-> We have also overriden **inventoryItemIdGet** and **inventoryGet** with the new implementations.
-> 
-> You'll find that we haven't forgotten to add the code to update the Prometheus counters we created in previous labs. 
+
+> **NOTE:** You'll find that we haven't forgotten to add the code to update the Prometheus counters we created in previous labs. You could delete the Prometheus related lines of code in `InventoryAPI` or just leave it as is.
 
 #### Adding sample data to the database
 
@@ -310,15 +388,15 @@ One of the properties (in the `application.properties` file), `spring.datasource
 ~~~shell
 $ cat <<EOF > ./src/main/resources/import.sql
 drop table if exists INVENTORY;
-create table INVENTORY (itemId int primary key, quantity int);
+create table INVENTORY (ITEM_ID VARCHAR2 primary key, QUANTITY int);
 
-INSERT INTO INVENTORY(itemId, quantity) VALUES (329299, 35);
-INSERT INTO INVENTORY(itemId, quantity) VALUES (329199, 12);
-INSERT INTO INVENTORY(itemId, quantity) VALUES (165613, 45);
-INSERT INTO INVENTORY(itemId, quantity) VALUES (165614, 87);
-INSERT INTO INVENTORY(itemId, quantity) VALUES (165954, 43);
-INSERT INTO INVENTORY(itemId, quantity) VALUES (444434, 32);
-INSERT INTO INVENTORY(itemId, quantity) VALUES (444435, 53);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (329299, 35);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (329199, 12);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (165613, 45);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (165614, 87);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (165954, 43);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (444434, 32);
+INSERT INTO INVENTORY(ITEM_ID, QUANTITY) VALUES (444435, 53);
 EOF
 ~~~
 
@@ -353,7 +431,7 @@ Open `pom.xml` and add the next properties in the `properties` section.
 
 > `<fabric8.generator.from>openshift/java:8</fabric8.generator.from>`
 
-~~~shell
+~~~xml
 ...
 <properties>
    <java.version>1.8</java.version>
