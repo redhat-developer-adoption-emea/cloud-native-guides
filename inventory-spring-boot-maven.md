@@ -284,6 +284,56 @@ Go to the folder where we have generated the code (it should be `inventory-sprin
 
 > Make sure you're at `inventory-spring-boot-maven/inventory-gen` and that OUTPUT_DIR is defined and properly populated. If in doubt review chapter **Generating the code**!
 
+> If you want to use Code Ready Workspaces add this `devfile.yaml` to your repo change GIT-REPO-URL accordingly.
+>
+> ~~~shell
+> cat << EOF > devfile.yaml
+> ---
+> apiVersion: 1.0.0
+> metadata:
+>   generateName: atomic-fruit-service-
+> projects:
+>   - name: atomic-fruit-service
+>     source:
+>       location: 'GIT-REPO-URL'
+>       type: git
+>       branch: master
+> components:
+>   - id: redhat/java11/latest
+>     type: chePlugin
+>   - mountSources: true
+>     memoryLimit: 512Mi
+>     type: dockerimage
+>     volumes:
+>       - name: m2
+>         containerPath: /home/user/.m2
+>     alias: maven
+>     image: 'quay.io/eclipse/che-java11-maven:7.3.0'
+>     env:
+>       - value: /home/user/.m2
+>         name: MAVEN_CONFIG
+>       - value: >-
+>           -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+>           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+>           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+>           -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
+>         name: MAVEN_OPTS
+>       - value: >-
+>           -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+>           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+>           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+>           -Xms20m -Djava.security.egd=file:/dev/./urandom
+>         name: JAVA_OPTS
+>       - value: >-
+>           -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+>           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+>           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+>           -Xms20m -Djava.security.egd=file:/dev/./urandom
+>         name: JAVA_TOOL_OPTIONS
+> apiVersion: 1.0.0
+> EOF
+> ~~~
+
 ~~~shell
 $ git init
 $ git remote add origin GIT-REPO-URL
