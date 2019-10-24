@@ -323,6 +323,7 @@ Go to the folder where we have generated the code (it should be `inventory-sprin
 >         name: JAVA_OPTS
 >       - value: $(JAVA_OPTS)
 >         name: MAVEN_OPTS
+> EOF
 > ~~~
 
 ~~~shell
