@@ -321,7 +321,7 @@ Go to the folder where we have generated the code (it should be `inventory-sprin
 >           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
 >           -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
 >         name: JAVA_OPTS
->       - value: $(JAVA_OPTS)
+>       - value: \$(JAVA_OPTS)
 >         name: MAVEN_OPTS
 > EOF
 > ~~~
