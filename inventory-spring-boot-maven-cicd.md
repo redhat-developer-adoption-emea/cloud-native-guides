@@ -145,7 +145,7 @@ Now (finally) it's time to create the pipeline, to do so please click on **Add t
 > 
 
 ~~~yaml
-apiVersion: v1
+apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: inventory-spring-boot-maven-pipeline-complex
