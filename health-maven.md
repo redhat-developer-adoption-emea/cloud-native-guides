@@ -52,13 +52,11 @@ inventory-s2i   inventory-s2i-{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}.apps.serve
 ~~~
 
 ~~~shell
-$ curl http://{{INVENTORY_ROUTE_HOST}}/health
-
-{"status":"UP","diskSpace":{"status":"UP","total":3209691136,"free":2667175936,"threshold":10485760},"db":{"status":"UP","database":"H2","hello":1}}
+$ curl http://{{INVENTORY_ROUTE_HOST}}/actuator/health
+{"status":"UP"}
 ~~~
 
-Last but not least, although you can build more sophisticated health endpoints for the Web UI as well, you 
-can use the root context ("/") of the Web UI in this lab to verify it's up and running.
+Last but not least, although you can build more sophisticated health endpoints for the Web UI as well, you can use the root context ("/") of the Web UI in this lab to verify it's up and running.
 
 ####  Monitoring Inventory Service Health
 
@@ -67,10 +65,10 @@ Health probes are defined on the deployment config for each pod and can be added
 Like mentioned, health probes are defined on a deployment config for each pod. Review the available deployment configs in the project. 
 
 ~~~shell
-$ oc get dc
+$ oc get dc -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 
 NAME            REVISION   DESIRED   CURRENT   TRIGGERED BY
-inventory-s2i   1          1         1         config,image(inventory:latest)
+inventory-s2i   1          1         1         config,image(inventory-s2i:latest)
 ~~~
 
 > `dc` stands for deployment config
@@ -78,7 +76,7 @@ inventory-s2i   1          1         1         config,image(inventory:latest)
 Add a liveness probe on the `inventory-s2i` deployment config using `oc set probe`:
 
 ~~~shell
-$ oc set probe dc/inventory-s2i --liveness --initial-delay-seconds=30 --failure-threshold=3 --get-url=http://:8080/health
+$ oc set probe dc/inventory-s2i --liveness --initial-delay-seconds=30 --failure-threshold=3 --get-url=http://:8080/actuator/health -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 > OpenShift automates deployments using [deployment triggers]({{OPENSHIFT_DOCS_BASE}}/dev_guide/deployments/basic_deployment_operations.html#triggers) that react to changes to the container image or configuration. Therefore, as soon as you define the probe, OpenShift automatically redeploys the Inventory pod using the new configuration including the liveness probe. 
@@ -92,7 +90,7 @@ Add a readiness probe on the inventory deployment config using the same `/health
 > It's recommended to have separate endpoints for readiness and liveness to indicate to OpenShift when to restart the container and when to leave it alone and remove it from the load-balancer so that an administrator would  manually investigate the issue. 
 
 ~~~shell
-$ oc set probe dc/inventory-s2i --readiness --initial-delay-seconds=30 --failure-threshold=3 --get-url=http://:8080/health 
+$ oc set probe dc/inventory-s2i --readiness --initial-delay-seconds=30 --failure-threshold=3 --get-url=http://:8080/actuator/health -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 Viola! OpenShift automatically restarts the Inventory pod and as soon as the 
@@ -100,16 +98,35 @@ health probes succeed, it is ready to receive traffic.
 
 > Fabric8 Maven Plugin can also be configured to automatically set the health probes when running `fabric8:deploy` goal. Read more on [Fabric8 docs](https://maven.fabric8.io/#enrichers) under [Spring Boot](https://maven.fabric8.io/#f8-spring-boot-health-check), [WildFly Swarm](https://maven.fabric8.io/#f8-wildfly-swarm-health-check) and [Eclipse Vert.x](https://maven.fabric8.io/#f8-vertx-health-check).
 
-#### Monitoring Metrics TODO
+#### Monitoring Metrics
 
 Metrics are another important aspect of monitoring applications which is required in order to gain visibility into how the application behaves and particularly in identifying issues.
 
 OpenShift provides container metrics out-of-the-box and displays how much memory, cpu and network each container has been consuming over time. In the project overview, you can see three charts near each pod that shows the resource consumption by that pod.
 
-![Container Metrics]({% image_path health-metrics-brief.png %}){:width="740px"}
+From the Developer view (top left corner) click on the App icon on Topology.
 
-Click on any of the pods (blue circle) which takes you to the pod details. Click on the **Metrics** tab to see a more detailed view of the metrics charts.
+![Container Metrics]({% image_path health-metrics-maven-brief-1.png %}){:width="740px"}
 
-![Container Metrics]({% image_path health-metrics-detailed.png %}){:width="900px"}
+Now click on any of the pods (panel on the right) which takes you to the pod details. Click on the **Metrics** tab to see a more detailed view of the metrics charts.
+
+![Container Metrics]({% image_path health-metrics-maven-brief-2.png %}){:width="740px"}
+
+> TIP: If you click on any of the charts you'll open the Prometheus UI so that you can dig into the details or elaborate/test new queries.
+
+#### Adding Custom metrics
+
+Now move to the Adminitration View (top left corner). And go down to `Monitornig->Metrics` and add this query and click on the enabling switch.
+
+~~~sql
+sum by(pod) (container_memory_working_set_bytes{namespace="{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}",container="",pod!=''})
+~~~
+
+![Container Metrics]({% image_path health-metrics-maven-chart-1.png %}){:width="740px"}
+
+You should see something like this.
+
+![Container Metrics]({% image_path health-metrics-maven-chart-2.png %}){:width="740px"}
+
 
 Well done! You are ready to move on to the next lab.
