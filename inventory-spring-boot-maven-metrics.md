@@ -244,7 +244,7 @@ $ oc logs -f bc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 Once it has finished, the new image should be rolled out and our Prometheus-ready code should be live.
 
 ~~~shell
-$ oc get route | grep inventory-s2i
+$ oc get route -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} | grep inventory-s2i
 inventory-s2i   inventory-s2i-coolstore-XX.apps.serverless-d50b.openshiftworkshop.com             inventory-s2i   8080-tcp                 None
 ~~~
 
