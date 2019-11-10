@@ -58,6 +58,8 @@ modules:
     name: Service Resilience and Fault Tolerance
   fault-tolerance-che:
     name: Service Resilience and Fault Tolerance
+  fault-tolerance-maven:
+    name: Service Resilience and Fault Tolerance
   app-config:
     name:  Application Configuration
   continuous-delivery:

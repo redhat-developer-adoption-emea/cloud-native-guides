@@ -38,7 +38,7 @@ modules:
   - inventory-spring-boot-maven-cicd
   - inventory-spring-boot-maven-implementation
   - health-maven
-  - fault-tolerance
+  - fault-tolerance-maven
   - app-config
   - continuous-delivery
   - debug
