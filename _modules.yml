@@ -53,7 +53,7 @@ modules:
   health:
     name: Monitoring Application Health
   health-maven:
-    name: Monitoring Application Health
+    name: Monitoring Application Health of Spring Boot Apps
   fault-tolerance:
     name: Service Resilience and Fault Tolerance
   fault-tolerance-che:
