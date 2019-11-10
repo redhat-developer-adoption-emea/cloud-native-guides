@@ -51,7 +51,9 @@ modules:
   nodejs:
     name: Web UI with Node.js and AngularJS
   health:
-    name: Monitoring Application Health 
+    name: Monitoring Application Health
+  health-maven:
+    name: Monitoring Application Health
   fault-tolerance:
     name: Service Resilience and Fault Tolerance
   fault-tolerance-che:
