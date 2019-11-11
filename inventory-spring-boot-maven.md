@@ -221,7 +221,7 @@ default ResponseEntity<List<InventoryItem>> inventoryGet() {
 
 Now we can run our brand new API implementation, and see if it works.
 
-> If you're using Code Ready Workspaces, then first you should go to [here]({{ ECLIPSE_CHE_URL }}f?url=https://github.com/cvicens/inventory-api-1st-maven) and run commands there.
+> If you're using Code Ready Workspaces, then first you should go to [here]({{ ECLIPSE_CHE_URL }}/f?url=https://github.com/cvicens/inventory-api-1st-maven) and run commands there.
 
 ~~~shell
 $ mvn spring-boot:run
