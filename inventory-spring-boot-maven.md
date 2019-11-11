@@ -189,6 +189,36 @@ default ResponseEntity<List<InventoryItem>> inventoryGet() {
 ...
 ~~~
 
+> **WARNING:** Additional dependencies if` Java 11`, add them after the depency with groupId `io.micrometer` and artifactId `micrometer-registry-prometheus`.
+    
+~~~xml
+<!-- Java 11 dependencies -->
+<dependency>
+    <groupId>javax.validation</groupId>
+    <artifactId>validation-api</artifactId>
+</dependency>
+<dependency>
+    <groupId>javax.xml.bind</groupId>
+    <artifactId>jaxb-api</artifactId>
+    <version>2.2.11</version>
+</dependency>
+<dependency>
+    <groupId>com.sun.xml.bind</groupId>
+    <artifactId>jaxb-core</artifactId>
+    <version>2.2.11</version>
+</dependency>
+<dependency>
+    <groupId>com.sun.xml.bind</groupId>
+    <artifactId>jaxb-impl</artifactId>
+    <version>2.2.11</version>
+</dependency>
+<dependency>
+    <groupId>javax.activation</groupId>
+    <artifactId>activation</artifactId>
+    <version>1.1.1</version>
+</dependency>
+~~~
+
 Now we can run our brand new API implementation, and see if it works.
 
 ~~~shell
@@ -375,8 +405,10 @@ Ok, so we're sure we have a project to deploy our API, well, let's deploy our co
 > **<font size="3" color="red">Remember:</font>** to substitute GIT-REPO-URL by the actual URL of your git repository
 > The structure of the following command is as follows: `oc new-app` 
 
+> If Java 8
+
 ~~~shell
-$ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-s2i -n  {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
+$ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-jdk-8-s2i -l app.kubernetes.io/component=inventory-jdk-8-s2i -l app.kubernetes.io/instance=inventory-jdk-8-s2i -l app.kubernetes.io/name=java -l app.kubernetes.io/part-of=inventory-jdk-8-s2i -l app.openshift.io/runtime=java -l app.openshift.io/runtime-version='8' -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
 --> Found image 8bea1b6 (2 weeks old) in image stream "openshift/java" under tag "8" for "java:8"
 
     Java Applications 
@@ -401,6 +433,37 @@ $ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-s2i -n  {{COOL
     Build scheduled, use 'oc logs -f bc/inventory-s2i' to track its progress.
     Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
      'oc expose svc/inventory-s2i' 
+    Run 'oc status' to view your app.
+~~~
+
+> If Java 11
+
+~~~shell
+$ oc new-app java:11~GIT-REPO-URL --context-dir=. --name inventory-jdk-11-s2i -l app.kubernetes.io/component=inventory-jdk-11-s2i -l app.kubernetes.io/instance=inventory-jdk-11-s2i -l app.kubernetes.io/name=java -l app.kubernetes.io/part-of=inventory-jdk-11-s2i -l app.openshift.io/runtime=java -l app.openshift.io/runtime-version='11' -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
+--> Found image adc2c89 (3 weeks old) in image stream "openshift/java" under tag "11" for "java:11"
+
+    Java Applications 
+    ----------------- 
+    Platform for building and running plain Java applications (fat-jar and flat classpath)
+
+    Tags: builder, java
+
+    * A source build using source code from https://github.com/cvicens/inventory-api-1st-maven will be created
+      * The resulting image will be pushed to image stream tag "inventory-jdk-11-s2i:latest"
+      * Use 'oc start-build' to trigger a new build
+    * This image will be deployed in deployment config "inventory-jdk-11-s2i"
+    * Ports 8080/tcp, 8443/tcp, 8778/tcp will be load balanced by service "inventory-jdk-11-s2i"
+      * Other containers can access this service through the hostname "inventory-jdk-11-s2i"
+
+--> Creating resources with label app.openshift.io/runtime-version=11 ...
+    imagestream.image.openshift.io "inventory-jdk-11-s2i" created
+    buildconfig.build.openshift.io "inventory-jdk-11-s2i" created
+    deploymentconfig.apps.openshift.io "inventory-jdk-11-s2i" created
+    service "inventory-jdk-11-s2i" created
+--> Success
+    Build scheduled, use 'oc logs -f bc/inventory-jdk-11-s2i' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose svc/inventory-jdk-11-s2i' 
     Run 'oc status' to view your app.
 ~~~
 

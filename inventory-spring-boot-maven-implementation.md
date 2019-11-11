@@ -23,6 +23,48 @@ application*.properties
 ...
 ~~~
 
+#### Fabric8 Plugin configuration
+
+We're going to use `fabric8` to deploy to Openshift and this means we have to make some changes to our `pom.xml` file and some additional files.
+
+Open `pom.xml` and add the next properties in the `properties` section.
+
+> Look for `<!-- fabric8 s2i image -->` and add the section.
+
+> If Java 8
+
+~~~xml
+...
+<properties>
+   <java.version>1.8</java.version>
+   <maven.compiler.source>${java.version}</maven.compiler.source>
+   <maven.compiler.target>${java.version}</maven.compiler.target>
+   <springfox-version>2.8.0</springfox-version>
+   <!-- fabric8 s2i image -->
+   <openjdk18-openshift.version>latest</openjdk18-openshift.version>
+    <fabric8.generator.from>registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:${openjdk18-openshift.version}</fabric8.generator.from>
+    <fabric8-maven-plugin.version>4.1.0</fabric8-maven-plugin.version>
+</properties>
+...
+~~~
+
+> If Java 11
+
+~~~xml
+...
+<properties>
+   <java.version>1.8</java.version>
+   <maven.compiler.source>${java.version}</maven.compiler.source>
+   <maven.compiler.target>${java.version}</maven.compiler.target>
+   <springfox-version>2.8.0</springfox-version>
+   <!-- fabric8 s2i image -->
+   <openjdk-11-openshift.version>latest</openjdk-11-openshift.version>
+   <fabric8.generator.from>registry.access.redhat.com/openjdk/openjdk-11-rhel7:${openjdk-11-openshift.version}</fabric8.generator.from>
+   <fabric8-maven-plugin.version>4.1.0</fabric8-maven-plugin.version>
+</properties>
+...
+~~~
+
 #### Adding database related dependencies
 
 Open `pom.xml` and add the next dependencies.
@@ -494,7 +536,7 @@ spec:
 EOF
 ~~~
 
-As we have mentioned a couple of time, we need the deployment to use the `openshift` profile when running in Openshift... and this profile should include the information to set up the DataSource acoordingly... So what's left is creating the properties file for our profile.
+As we have mentioned a couple of times, we need the deployment to use the `openshift` profile when running in Openshift... and this profile should include the information to set up the DataSource acoordingly... So what's left is creating the properties file for our profile.
 
 > **Pay attention to the # PostgreSQL section**, all the other data is as it was before and so it's not repeated in this new properties file
 > 

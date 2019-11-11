@@ -22,6 +22,29 @@ application*.properties
 ...
 ~~~
 
+#### Fabric8 Plugin configuration
+
+We're going to use `fabric8` to deploy to Openshift and this means we have to make some changes to our `pom.xml` file and some additional files.
+
+Open `pom.xml` and add the next properties in the `properties` section.
+
+> Look for `<!-- fabric8 s2i image -->` and add the section.
+
+~~~xml
+...
+<properties>
+   <java.version>1.8</java.version>
+   <maven.compiler.source>${java.version}</maven.compiler.source>
+   <maven.compiler.target>${java.version}</maven.compiler.target>
+   <springfox-version>2.8.0</springfox-version>
+   <!-- fabric8 s2i image -->
+   <openjdk-11-openshift.version>latest</openjdk-11-openshift.version>
+   <fabric8.generator.from>registry.access.redhat.com/openjdk/openjdk-11-rhel7:${openjdk-11-openshift.version}</fabric8.generator.from>
+   <fabric8-maven-plugin.version>4.1.0</fabric8-maven-plugin.version>
+</properties>
+...
+~~~
+
 #### Adding database related dependencies
 
 Open `pom.xml` and add the next dependencies.
@@ -345,27 +368,6 @@ $ oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_D
 $ oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data openshift/postgresql-92-centos7 --name=my-database -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
 ~~~
 
-We're going to use `fabric8` to deploy to Openshift and this means we have to make some changes to our `pom.xml` file and some additional files.
-
-> Maybe you have noticed that we added the plugin before as part of the 'openshift' profile (and along with the PostgreSQL driver).
-
-Open `pom.xml` and add the next properties in the `properties` section.
-
-> `<fabric8.generator.from>openshift/java:8</fabric8.generator.from>`
-
-~~~shell
-...
-<properties>
-   <java.version>1.8</java.version>
-   <maven.compiler.source>${java.version}</maven.compiler.source>
-   <maven.compiler.target>${java.version}</maven.compiler.target>
-   <springfox-version>2.8.0</springfox-version>
-   <!-- fabric8 s2i image -->
-   <fabric8.generator.from>openshift/java:8</fabric8.generator.from>
-</properties>
-...
-~~~
-
 Fabric8 is the plugin we use to deploy our code and if we don't do nothing it will use a *by default* `Deployment`, nevertheless our deployment needs some enviroment variables (and probes) to work properly, namely:
 
 * **DB_USERNAME:** which should be `luke`
@@ -441,6 +443,8 @@ EOF
 First of let's be sure we're at the right project.
 
 > **NOTICE:** For the `fabric8` plugin to work you need to be logged in and in the correct project.
+
+
 
 ~~~shell
 $ oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
