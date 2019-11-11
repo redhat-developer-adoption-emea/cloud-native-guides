@@ -39,7 +39,7 @@ modules:
   - inventory-spring-boot-maven-implementation
   - health-maven
   - fault-tolerance-maven
-  - app-config
+  - app-config-maven
   - continuous-delivery
   - debug
   - env-info

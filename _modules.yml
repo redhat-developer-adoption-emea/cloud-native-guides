@@ -62,6 +62,8 @@ modules:
     name: Service Resilience and Fault Tolerance
   app-config:
     name:  Application Configuration
+  app-config-maven:
+    name:  Application Configuration
   continuous-delivery:
     name:  Continuous Delivery
   continuous-delivery-che:
