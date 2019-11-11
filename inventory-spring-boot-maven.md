@@ -189,7 +189,7 @@ default ResponseEntity<List<InventoryItem>> inventoryGet() {
 ...
 ~~~
 
-> **WARNING:** Additional dependencies if` Java 11`, add them after the depency with groupId `io.micrometer` and artifactId `micrometer-registry-prometheus`.
+> **WARNING:** Additional dependencies if` Java 11`, add them after the depency with groupId `io.micrometer` and artifactId `micrometer-registry-prometheus` (already added before).
     
 ~~~xml
 <!-- Java 11 dependencies -->
@@ -220,6 +220,8 @@ default ResponseEntity<List<InventoryItem>> inventoryGet() {
 ~~~
 
 Now we can run our brand new API implementation, and see if it works.
+
+> If you're using Code Ready Workspaces, then first you should go to [here]({{ ECLIPSE_CHE_URL }}f?url=https://github.com/cvicens/inventory-api-1st-maven) and run commands there.
 
 ~~~shell
 $ mvn spring-boot:run
@@ -343,8 +345,10 @@ Go to the folder where we have generated the code (it should be `inventory-sprin
 >       - name: m2
 >         containerPath: /home/user/.m2
 >     alias: tools
->     image: 'quay.io/eclipse/che-java8-maven:7.3.0'
+>     image: 'quay.io/cvicensa/cnw-che-stack:7.3.1-3'
 >     env:
+>       - value: http://nexus.lab-infra:8081/repository/maven-all-public
+>         name: MAVEN_MIRROR_UR
 >       - value: >-
 >           -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
 >           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
@@ -376,7 +380,7 @@ $ git commit -m "initial add"
 $ git push -u origin master
 ~~~
 
-Enter your Git repository username and password if you get asked to enter your credentials. Go to your `inventory-g2` repository web interface and refresh the page. You should see the project files in the repository.
+Enter your Git repository username and password if you get asked to enter your credentials. Go to your `inventory` repository web interface and refresh the page. You should see the project files in the repository.
 
 ![Inventory Repository]({% image_path gogs-new-repo-04.png %}){:width="900px"}
 
