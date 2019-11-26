@@ -29,7 +29,7 @@ Third, you need to register as a Che user. Register and choose the same username
 
 You can now create your workspace based on a stack. A stack is a template of workspace configuration. For example, it includes the programming language and tools needed in your workspace. Stacks make it possible to recreate identical workspaces with all the tools and needed configuration on-demand. 
 
-For this lab, click [here]({{ ECLIPSE_CHE_URL }}/f?url=https://github.com/cvicens/inventory-api-1st-maven) and Eclipse Che will take it from there.
+For this lab, right-click [here]({{ ECLIPSE_CHE_URL }}/f?url=https://github.com/cvicens/inventory-api-1st-maven) and open in a new tab and Eclipse Che will take it from there.
 
 Eclipse Che will look for a file called `devfile.yaml` like the next one.
 
