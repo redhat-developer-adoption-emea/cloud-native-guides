@@ -364,8 +364,10 @@ This time, our code needs a database, a real one -PostgreSQL-, not H2. So the fi
 Let's deploy our databases.
 
 ~~~shell
-$ oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data openshift/postgresql-92-centos7 --name=my-database -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
-$ oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data openshift/postgresql-92-centos7 --name=my-database -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
+oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data centos/postgresql-10-centos7 --name=my-database -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+oc label dc/my-database app.kubernetes.io/part-of=fruit-service-app -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data centos/postgresql-10-centos7 --name=my-database -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
+oc label dc/my-database app.kubernetes.io/part-of=fruit-service-app -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev
 ~~~
 
 Fabric8 is the plugin we use to deploy our code and if we don't do nothing it will use a *by default* `Deployment`, nevertheless our deployment needs some enviroment variables (and probes) to work properly, namely:
