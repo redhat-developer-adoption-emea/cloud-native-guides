@@ -142,7 +142,8 @@ Now (finally) it's time to create the pipeline, to do so please click on **Add t
 > * **Subtitute XX by your assigned number!**
 > * Ask your instructor to go to sonar Administration/Security/Users and get a proper token for **SONAR_TOKEN** variable, then substitute '**ASK_YOUR_INSTRUCTOR**' with it.
 > * Assign a proper value to **APP_BASE**, it should be like the Openshift master url ***{{OPENSHIFT_CONSOLE_URL}}*** replacing `master` by `apps`
-> 
+> * You must substitute **GIT-REPO-URL** with your own Git repository URL as explained in lab **Alternative Inventory with Spring Boot + Maven**
+>
 
 ~~~yaml
 apiVersion: build.openshift.io/v1
@@ -152,36 +153,8 @@ metadata:
 spec:
   strategy:
     jenkinsPipelineStrategy:
-      jenkinsfile: |-
-        // Don't forget to run the commands to create the dev project, and grant the needed roles to the service accounts
-        
-        // TODO: change needed
-        def APP_BASE = "ASK_YOUR_INSTRUCTOR"
-        def LAB_INFRA_PROJECT_NAME = "ASK_YOUR_INSTRUCTOR"
-
-        def APP_NAME = "inventory"
-        def APP_VERSION = "0.0.1-SNAPSHOT"
-
-        // TODO: change needed
-        def PROJECT_NAME = "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}"
-        def DEV_PROJECT_NAME = "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev"
-
-        // TODO: change needed
-        def GIT_URL = "GIT-REPO-URL"
-        def GIT_REF = "master"
-        def CONTEXT_DIR = "."
-
-        def NEXUS = "http://nexus-" + LAB_INFRA_PROJECT_NAME + "." + APP_BASE
-        def NEXUS_USERNAME = "admin"
-        def NEXUS_PASSWORD = "admin123"
-        def NEXUS_PATH = "com/redhat/cloudnative/inventory"
-
-        // TODO: change needed
-        def SONAR_TOKEN = "ASK_YOUR_INSTRUCTOR"
-        def SONAR = "http://sonarqube-" + LAB_INFRA_PROJECT_NAME + "." + APP_BASE
-                
+      jenkinsfile: |-                
         def BUILD_NAME = APP_NAME
-        def BUILD_IMAGE_STREAM = "openshift/redhat-openjdk18-openshift:1.4"
             
         def mvnCmd = "mvn -s ./nexus_openshift_settings.xml"
 
@@ -227,8 +200,6 @@ spec:
                     script {
                       dir("${CONTEXT_DIR}") {
                         sh "${mvnCmd} deploy -DskipTests=true -DaltDeploymentRepository=nexus::default::${NEXUS}/repository/maven-snapshots/"
-                        //APP_VERSION = sh (script: './gradlew -q getVersion --no-daemon', returnStdout: true).trim()
-                        //sh "curl -v -u ${NEXUS_USERNAME}:${NEXUS_PASSWORD} --upload-file ./build/libs/${APP_NAME}-${APP_VERSION}.jar ${NEXUS}/repository/maven-snapshots/${NEXUS_PATH}/${APP_VERSION}/${APP_NAME}-${APP_VERSION}.jar"
                       }
                     }
                 }
@@ -263,24 +234,6 @@ spec:
               }
             }
 
-            stage('Approve') {
-                steps {
-                    timeout(time:15, unit:'MINUTES') {
-                        input message:'Approve Deploy to Dev?'
-                    }
-                }
-            }
-
-            stage('Promote to DEV') {
-              steps {
-                script {
-                  openshift.withCluster() {
-                    openshift.tag("${BUILD_NAME}:latest", "${BUILD_NAME}:dev")
-                  }
-                }
-              }
-            }
-
             stage('Create DEV') {
               when {
                 expression {
@@ -295,7 +248,70 @@ spec:
                 script {
                   openshift.withCluster() {
                     openshift.withProject("${DEV_PROJECT_NAME}") {
-                        openshift.newApp("${PROJECT_NAME}/${BUILD_NAME}:dev", "--name=${APP_NAME} -e DB_USERNAME=luke -e DB_PASSWORD=secret -e JAVA_OPTIONS=-Dspring.profiles.active=openshift").narrow('svc').expose()
+                        openshift.newApp("${DEV_PROJECT_NAME}/${BUILD_NAME}:latest", "--name=${APP_NAME} -e JAVA_OPTIONS=-Dspring.profiles.active=openshift").narrow('svc').expose()
+                        def setEnvSecret = openshift.raw( "set env --from=secret/database-secret dc/${APP_NAME}" )
+                        echo "After set env from secret: ${setEnvSecret.out}"
+                        def setEnvConfig = openshift.raw( "set env --from=configmap/database-config dc/${APP_NAME}" )
+                        echo "After set env from config: ${setEnvConfig.out}"
+                        def liveness = openshift.raw( "set probe dc/${APP_NAME} --liveness --get-url=http://:8080/mpmo/health --initial-delay-seconds=180" )
+                        echo "After set probe liveness: ${liveness.out}"
+                        def readiness = openshift.raw( "set probe dc/${APP_NAME} --readiness --get-url=http://:8080/mpmo/health --initial-delay-seconds=10" )
+                        echo "After set probe readiness: ${readiness.out}"
+                        def partOfLabel = openshift.raw( "label dc/${APP_NAME} app.kubernetes.io/part-of=${PART_OF}" )
+                        echo "After label part-of partOfLabel: ${partOfLabel.out}"
+                        def serviceLabel = openshift.raw( "label svc/${APP_NAME} team=spring-boot-actuator" )
+                        echo "After label team serviceLabel: ${serviceLabel.out}"
+                    }
+                  }
+                }
+              }
+            }
+
+            stage('Approve') {
+                steps {
+                    timeout(time:15, unit:'MINUTES') {
+                        input message:'Approve Deploy to TEST?'
+                    }
+                }
+            }
+
+            stage('Promote to TEST') {
+              steps {
+                script {
+                  openshift.withCluster() {
+                    openshift.tag("${BUILD_NAME}:latest", "${BUILD_NAME}:test")
+                  }
+                }
+              }
+            }
+
+            stage('Create TEST') {
+              when {
+                expression {
+                  openshift.withCluster() {
+                      openshift.withProject("${TEST_PROJECT_NAME}") {
+                        return !openshift.selector('dc', "${APP_NAME}").exists()
+                      }
+                  }
+                }
+              }
+              steps {
+                script {
+                  openshift.withCluster() {
+                    openshift.withProject("${TEST_PROJECT_NAME}") {
+                        openshift.newApp("${DEV_PROJECT_NAME}/${BUILD_NAME}:test", "--name=${APP_NAME} -e JAVA_OPTIONS=-Dspring.profiles.active=openshift").narrow('svc').expose()
+                        def setEnvSecret = openshift.raw( "set env --from=secret/database-secret dc/${APP_NAME}" )
+                        echo "After set env from secret: ${setEnvSecret.out}"
+                        def setEnvConfig = openshift.raw( "set env --from=configmap/database-config dc/${APP_NAME}" )
+                        echo "After set env from config: ${setEnvConfig.out}"
+                        def liveness = openshift.raw( "set probe dc/${APP_NAME} --liveness --get-url=http://:8080/mpmo/health --initial-delay-seconds=180" )
+                        echo "After set probe liveness: ${liveness.out}"
+                        def readiness = openshift.raw( "set probe dc/${APP_NAME} --readiness --get-url=http://:8080/mpmo/health --initial-delay-seconds=10" )
+                        echo "After set probe readiness: ${readiness.out}"
+                        def partOfLabel = openshift.raw( "label dc/${APP_NAME} app.kubernetes.io/part-of=${PART_OF}" )
+                        echo "After label part-of partOfLabel: ${partOfLabel.out}"
+                        def serviceLabel = openshift.raw( "label svc/${APP_NAME} team=spring-boot-actuator" )
+                        echo "After label team serviceLabel: ${serviceLabel.out}"
                     }
                   }
                 }
@@ -303,6 +319,49 @@ spec:
             }
           }
         }
+      env:
+        - name: MAVEN_OPTS
+          value: >-
+            -Dsun.zip.disableMemoryMapping=true -Xms20m
+            -Djava.security.egd=file:/dev/./urandom
+            -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap
+            -Dsun.zip.disableMemoryMapping=true
+        - name: APP_BASE
+          value: "ASK_YOUR_INSTRUCTOR"
+        - name: LAB_INFRA_PROJECT_NAME
+          value: "lab-infra"
+        - name: APP_NAME
+          value: "inventory"
+        - name: APP_VERSION
+          value: "0.0.1-SNAPSHOT"
+        - name: DEV_PROJECT_NAME
+          value: "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}"
+        - name: TEST_PROJECT_NAME
+          value: "{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}-dev"
+        - name: GIT_URL
+          value: "GIT-REPO-URL"
+        - name: GIT_REF
+          value: "master"
+        - name: CONTEXT_DIR
+          value: "."
+        - name: BUILD_IMAGE_STREAM
+          value: "openshift/redhat-openjdk18-openshift:1.4"
+        - name: NEXUS
+          value: "ASK_YOUR_INSTRUCTOR"
+        - name: NEXUS_USERNAME
+          value: "admin"
+        - name: NEXUS_PASSWORD
+          value: "admin123"
+        - name: NEXUS_PATH
+          value: "com/redhat/cloudnative/inventory"
+        - name: SONAR_TOKEN
+          value: "ASK_YOUR_INSTRUCTOR"
+        - name: SONAR
+          value: "ASK_YOUR_INSTRUCTOR"
+        - name: JOB_BASE_NAME
+          value: "inventory-service-{{PROJECT_SUFFIX}}job"
+        - name: PART_OF
+          value: "coolstore-app"
     type: JenkinsPipeline
 ~~~
 
