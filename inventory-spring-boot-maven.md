@@ -49,6 +49,9 @@ $ cd inventory-spring-boot-maven
 $ cp ~/Downloads/Inventory\ API.yaml ./inventory.yaml
 ~~~
 
+
+> Upload the file to your workspace
+
 Next you'll create a `bin` folder, download the API Generator CLI...
 
 ~~~shell
@@ -65,7 +68,7 @@ $ cat << EOF > openapi-config.json
 }
 EOF
 $ mkdir ./bin
-$ curl -L -o ./bin/openapi-generator-cli.jar http://central.maven.org/maven2/org/openapitools/openapi-generator-cli/3.3.4/openapi-generator-cli-3.3.4.jar
+$ curl -L -o ./bin/openapi-generator-cli.jar https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/4.2.3/openapi-generator-cli-4.2.3.jar
 $ export OUTPUT_DIR="inventory-gen"
 ~~~
 
@@ -142,7 +145,7 @@ Finally let's generate the code.
 ~~~shell
 $ java -jar ./bin/openapi-generator-cli.jar generate \
   -i inventory.yaml \
-  -l spring \
+  -g spring \
   -o $OUTPUT_DIR -c openapi-config.json
 ~~~
 
@@ -293,7 +296,7 @@ Click on the plus icon on the top navigation bar and then on **New Repository**.
 
 ![Create New Repository]({% image_path gogs-new-repo-01.png %}){:width="900px"}
 
-Give `inventory-spring-boot-gradle` as **Repository Name** and click on **Create Repository** 
+Give `inventory-spring` as **Repository Name** and click on **Create Repository** 
 button, leaving the rest with default values.
 
 ![Create New Repository]({% image_path gogs-new-repo-02.png %}){:width="700px"}
@@ -350,7 +353,7 @@ Go to the folder where we have generated the code (it should be `inventory-sprin
 >       - value: http://nexus.lab-infra:8081/repository/maven-all-public
 >         name: MAVEN_MIRROR_UR
 >       - value: >-
->           -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+>           -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
 >           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
 >           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
 >           -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
@@ -362,7 +365,7 @@ Go to the folder where we have generated the code (it should be `inventory-sprin
 
 ~~~shell
 $ git init
-$ git remote add origin GIT-REPO-URL
+$ git remote add origin ${GIT_REPO_URL}
 ~~~
 
 Before you commit the source code to the Git repository, configure your name and email so that the commit owner can be seen on the repository. If you want, you can replace the name and the email with your own in the following commands:
@@ -412,7 +415,7 @@ Ok, so we're sure we have a project to deploy our API, well, let's deploy our co
 > If Java 8
 
 ~~~shell
-$ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-jdk-8-s2i -l app.kubernetes.io/component=inventory-jdk-8-s2i -l app.kubernetes.io/instance=inventory-jdk-8-s2i -l app.kubernetes.io/name=java -l app.kubernetes.io/part-of=inventory-jdk-8-s2i -l app.openshift.io/runtime=java -l app.openshift.io/runtime-version='8' -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
+$ oc new-app java:8~${GIT_REPO_URL} --context-dir=. --name inventory-jdk-8-s2i -l app.kubernetes.io/component=inventory-jdk-8-s2i -l app.kubernetes.io/instance=inventory-jdk-8-s2i -l app.kubernetes.io/name=java -l app.kubernetes.io/part-of=inventory-jdk-8-s2i -l app.openshift.io/runtime=java -l app.openshift.io/runtime-version='8' -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
 --> Found image 8bea1b6 (2 weeks old) in image stream "openshift/java" under tag "8" for "java:8"
 
     Java Applications 
@@ -443,7 +446,7 @@ $ oc new-app java:8~GIT-REPO-URL --context-dir=. --name inventory-jdk-8-s2i -l a
 > If Java 11
 
 ~~~shell
-$ oc new-app java:11~GIT-REPO-URL --context-dir=. --name inventory-jdk-11-s2i -l app.kubernetes.io/component=inventory-jdk-11-s2i -l app.kubernetes.io/instance=inventory-jdk-11-s2i -l app.kubernetes.io/name=java -l app.kubernetes.io/part-of=inventory-jdk-11-s2i -l app.openshift.io/runtime=java -l app.openshift.io/runtime-version='11' -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
+$ oc new-app java:11~${GIT_REPO_URL} --context-dir=. --name inventory-jdk-11-s2i -l app.kubernetes.io/component=inventory-jdk-11-s2i -l app.kubernetes.io/instance=inventory-jdk-11-s2i -l app.kubernetes.io/name=java -l app.kubernetes.io/part-of=inventory-jdk-11-s2i -l app.openshift.io/runtime=java -l app.openshift.io/runtime-version='11' -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} 
 --> Found image adc2c89 (3 weeks old) in image stream "openshift/java" under tag "11" for "java:11"
 
     Java Applications 
@@ -489,9 +492,18 @@ After a successful built you should see a blue circle stating that 1 pod is up a
 
 In order to expose our service to the internet we need a route, next command will do the job.
 
+> If Java 8
+
 ~~~shell
-$ oc expose svc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
-route.route.openshift.io/inventory-s2i exposed
+$ oc expose svc/inventory-jdk-8-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+route.route.openshift.io/inventory-jdk-8-s2i exposed
+~~~
+
+> If Java 11
+
+~~~shell
+$ oc expose svc/inventory-jdk-11-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+route.route.openshift.io/inventory-jdk-11-s2i exposed
 ~~~
 
 Now if you go back to the Openshift web console you should see the route generated.

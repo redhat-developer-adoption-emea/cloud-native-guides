@@ -72,19 +72,8 @@ $ mvn spring-boot:run
 
 Now open another terminal window and check if the default actuator endpoint is working properly.
 
-> **TIP:** Adding `| jq '.'` to make it easier to spot the 'prometheus' URL...
-> 
-> ~~~json
-...
-"prometheus": {
-      "href": "http://localhost:8080/actuator/prometheus",
-      "templated": false
-},
-...
-~~~
-
 ~~~shell
-$ curl http://localhost:8080/actuator | jq '.'
+$ curl http://localhost:8080/actuator
 {
   "_links": {
     ...
@@ -223,29 +212,37 @@ $ git push origin master
 >
 > **Please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
 
+> If Java 8, else, change 8 by 11
+
 ~~~shell
-$  oc label svc inventory-s2i team=spring-boot-actuator -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+$  oc label svc inventory-jdk-8-s2i team=spring-boot-actuator -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~ 
 
 Finally let's rebuild the image (start a new build) which leads to the deployment of our new code.
 
 > **Please make sure project `{{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}` is in use** by running: `oc project {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}`
 
+> If Java 8, else, change 8 by 11
+
 ~~~shell
-$ oc start-build bc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+$ oc start-build bc/inventory-jdk-8-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 You can either progress of the build in the web console or running this command.
 
+> If Java 8, else, change 8 by 11
+
 ~~~shell
-$ oc logs -f bc/inventory-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+$ oc logs -f bc/inventory-jdk-8-s2i -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
 ~~~
 
 Once it has finished, the new image should be rolled out and our Prometheus-ready code should be live.
 
+> If Java 8, else, 8 should change to 11
+
 ~~~shell
-$ oc get route -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} | grep inventory-s2i
-inventory-s2i   inventory-s2i-coolstore-XX.apps.serverless-d50b.openshiftworkshop.com             inventory-s2i   8080-tcp                 None
+$ oc get route -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}} | grep inventory-jdk
+inventory-jdk-8-s2i   inventory-jdk-8-s2i-coolstore-XX.apps.serverless-d50b.openshiftworkshop.com             inventory-s2i-jdk-8   8080-tcp                 None
 ~~~
 
 You can make some requests to the inventory API and see how our Prometheus metrics look.

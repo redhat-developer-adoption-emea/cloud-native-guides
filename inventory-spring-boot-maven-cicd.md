@@ -24,6 +24,14 @@ The certified Jenkins image provided by OpenShift also provides auto-discovery a
 
 Note that this scanning is only performed once, when the Jenkins master is starting.
 
+#### Deploying Jenkins
+
+Before running Jenkins pipelines we need to deploy Jenkins in our project. This can be done from the web console or by running the next command.
+
+~~~shell
+oc new-app jenkins-ephemeral -p MEMORY_LIMIT=3Gi -p JENKINS_IMAGE_STREAM_TAG=jenkins:2 -n {{COOLSTORE_PROJECT}}{{PROJECT_SUFFIX}}
+~~~
+
 #### Building a simple pipeline to proof we can use the Maven Slave
 The following is a simple pipeline definition that clones our new Inventory service from the Git repository and then builds it using Gradle:
 
