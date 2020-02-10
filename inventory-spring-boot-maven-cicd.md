@@ -257,9 +257,13 @@ spec:
                   openshift.withCluster() {
                     openshift.withProject("${DEV_PROJECT_NAME}") {
                         openshift.newApp("${DEV_PROJECT_NAME}/${BUILD_NAME}:latest", "--name=${APP_NAME} -e JAVA_OPTIONS=-Dspring.profiles.active=openshift").narrow('svc').expose()
-                        //def liveness = openshift.raw( "set probe dc/${APP_NAME} --liveness --get-url=http://:8080/health --initial-delay-seconds=180" )
+                        //def setEnvSecret = openshift.raw( "set env --from=secret/database-secret dc/${APP_NAME}" )
+                        //echo "After set env from secret: ${setEnvSecret.out}"
+                        //def setEnvConfig = openshift.raw( "set env --from=configmap/database-config dc/${APP_NAME}" )
+                        //echo "After set env from config: ${setEnvConfig.out}"
+                        //def liveness = openshift.raw( "set probe dc/${APP_NAME} --liveness --get-url=http://:8080/mpmo/health --initial-delay-seconds=180" )
                         //echo "After set probe liveness: ${liveness.out}"
-                        //def readiness = openshift.raw( "set probe dc/${APP_NAME} --readiness --get-url=http://:8080/health --initial-delay-seconds=10" )
+                        //def readiness = openshift.raw( "set probe dc/${APP_NAME} --readiness --get-url=http://:8080/mpmo/health --initial-delay-seconds=10" )
                         //echo "After set probe readiness: ${readiness.out}"
                         def partOfLabel = openshift.raw( "label dc/${APP_NAME} app.kubernetes.io/part-of=${PART_OF}" )
                         echo "After label part-of partOfLabel: ${partOfLabel.out}"
@@ -304,9 +308,13 @@ spec:
                   openshift.withCluster() {
                     openshift.withProject("${TEST_PROJECT_NAME}") {
                         openshift.newApp("${DEV_PROJECT_NAME}/${BUILD_NAME}:test", "--name=${APP_NAME} -e JAVA_OPTIONS=-Dspring.profiles.active=openshift").narrow('svc').expose()
-                        //def liveness = openshift.raw( "set probe dc/${APP_NAME} --liveness --get-url=http://:8080/mpmo/health --initial-delay-seconds=180" )
+                        //def setEnvSecret = openshift.raw( "set env --from=secret/database-secret dc/${APP_NAME}" )
+                        //echo "After set env from secret: ${setEnvSecret.out}"
+                        //def setEnvConfig = openshift.raw( "set env --from=configmap/database-config dc/${APP_NAME}" )
+                        //echo "After set env from config: ${setEnvConfig.out}"
+                        //def liveness = openshift.raw( "set probe dc/${APP_NAME} --liveness --get-url=http://:8080/mpmo/health //--initial-delay-seconds=180" )
                         //echo "After set probe liveness: ${liveness.out}"
-                        //def readiness = openshift.raw( "set probe dc/${APP_NAME} --readiness --get-url=http://:8080/mpmo/health --initial-delay-seconds=10" )
+                        //def readiness = openshift.raw( "set probe dc/${APP_NAME} --readiness --get-url=http://:8080/mpmo/health //--initial-delay-seconds=10" )
                         //echo "After set probe readiness: ${readiness.out}"
                         def partOfLabel = openshift.raw( "label dc/${APP_NAME} app.kubernetes.io/part-of=${PART_OF}" )
                         echo "After label part-of partOfLabel: ${partOfLabel.out}"
