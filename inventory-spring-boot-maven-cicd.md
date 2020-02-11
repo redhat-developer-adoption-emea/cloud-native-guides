@@ -197,7 +197,7 @@ spec:
                 steps {
                     script {
                         dir("${CONTEXT_DIR}") {
-                          sh "${mvnCmd} sonar:sonar -Dsonar.host.url=${SONAR} -Dsonar.projectName=${JOB_BASE_NAME} -Dsonar.login=${SONAR_TOKEN}"
+                          print "${mvnCmd} sonar:sonar -Dsonar.host.url=${SONAR} -Dsonar.projectName=${JOB_BASE_NAME} -Dsonar.login=${SONAR_TOKEN}"
                         }
                     }
                 }
