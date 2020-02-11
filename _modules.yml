@@ -26,6 +26,8 @@ modules:
     name: Externalizing Configuration to our Spring Boot + Gradle Inventory
   inventory-spring-boot-maven:
     name: Alternative Inventory with Spring Boot + Maven
+  inventory-spring-boot-maven-deploy:
+    name: Alternative Inventory with Spring Boot + Maven
   inventory-spring-boot-maven-metrics:
     name: Adding Prometheus metrics to Inventory (Spring Boot/Maven)
   inventory-spring-boot-maven-cicd:
